@@ -1,18 +1,16 @@
 import { w2toolbar } from '../dependencies/w2ui-2.0.es6.min.js'
 
-let pstyle = 'background: #eeeeee; padding: 5px;'
-
 // THE TOOLBAR
 let toolbar = new w2toolbar({
     box: '#toolbar',
     name: 'toolbar',
-    style: pstyle,
+    style: pstyle+"border:none;",
     items: [
-        { type: 'menu', id: 'data', style: pstyle, text: 'Data', items: [
+        { type: 'menu', id: 'data', style: pstyle+"border:none;", text: 'Data', items: [
             { text: 'Import', onClick: importFunc},
             { text: 'Create', onClick: generateData}
         ]},
-        { type: 'menu', id: 'plot', style: pstyle, text: 'Plot', items: [
+        { type: 'menu', id: 'plot', style: pstyle+"border:none;", text: 'Plot', items: [
             { text: 'Actigram', onClick: makeNewActigram}
         ]},
     ],

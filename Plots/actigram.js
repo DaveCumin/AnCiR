@@ -7,6 +7,7 @@ function actigram(chartID) {
         periodHrs = 24,
         startTime = new Date(),
         putcontrols = "",
+        normalise = false,
         dataTabCols, //Reference the 'raw data'; an object with {table: tabname , dates: colname, values: colname}
         chartData; //This is the 'internal' data that is plotted
 
@@ -19,13 +20,9 @@ function actigram(chartID) {
                 chartData = makeActiData(data, periodHrs);
                 startTime = new Date(Date.parse(data[0].date));
                 startTime = new Date(startTime);
-                startTime.setHours(0,0,0);
-                console.log(startTime)           
+                startTime.setHours(0,0,0);         
             }
             
-            //set up the data
-            EachPlotData = Array.from(d3.group(chartData, d => d.plot))
-
             //clear for redraw
             d3.select(this).selectAll("svg").remove();
 
@@ -53,68 +50,62 @@ function actigram(chartID) {
                 .domain([0, periodHrs])
                 .range([0, width]);
 
-            const yScale = d3.scaleLinear()
-                .domain([0, chartData.max])
-                .range([height, 0]);
-
-            // Create a line generator for the plots
-            const line = d3.line()
-                .x((d) => xScale(d.hour))
-                .y((d) => yScale(d.value))
-                .curve(d3.curveStepBefore);
-                //.defined(d => !isNaN(d));
-
 
             // Create a group for each plot and position them
             var plots = g.selectAll(".acti")
-                .data(EachPlotData)
+                .data(Array.from(Array(chartData.nPlots).keys()))
                 .enter()
                 .append("g")
                 .attr("class", "acti")
-                .attr(
-                    "transform",
-                    (d, i) =>
-                        `translate(${margin.left}, ${i * height + (i + 1) * margin.between})`
-                    )            .append("path")
-                .datum(d => d[1])
-                .attr("d", d => `${line(d)} 
-                                            L${xScale(d.reduce((max, obj) => {
-                                                return obj.hour > max ? obj.hour : max;
-                                                }, 0))},
-                                            ${height} 
-                                            L${xScale(d.reduce((min, obj) => {
-                                                return obj.hour < min ? obj.hour : min;
-                                                }, width))},
-                                            ${height} Z`) // add line to end point and close path
-                .attr("stroke", "none")
-                .attr("fill", "rgba(1,1,1,0.6)");
+                .attr("transform", (d, i) => `translate(${margin.left}, ${i * height + (i + 1) * margin.between})`);
 
+            var nYTicks = Math.round(height / 20)
+            if(nYTicks < 2){nYTicks = 2}
 
-            // Create a new group for the second plot and position it
-            var plots2 = g.selectAll(".acti2")
-                .data(EachPlotData.slice(1)) // use slice to remove the first plot
-                .enter()
-                .append("g")
-                .attr("class", "acti2")
-                .attr(
-                    "transform",
-                    (d, i) =>
-                        `translate(${margin.left + width}, ${
-                        i * height + (i + 1) * margin.between
-                        })`
-                    )            .append("path")
-                .datum(d => d[1])
-                .attr("d", d => `${line(d)} 
-                                            L${xScale(d.reduce((max, obj) => {
-                                                return obj.hour > max ? obj.hour : max;
-                                                }, 0))},
-                                            ${height} 
-                                            L${xScale(d.reduce((min, obj) => {
-                                                return obj.hour < min ? obj.hour : min;
-                                                }, width))},
-                                            ${height} Z`) // add line to end point and close path
-                .attr("stroke", "none")
-                .attr("fill", "rgba(1,1,1,0.6)");
+            plots.each(function(d, i) {
+                // Filter data for current plot
+                const plotData = chartData.filter(datum => datum.plot === i || datum.plot === (i+1));
+
+                // Get max values for the current plot
+                const maxVal = d3.max(plotData, datum => datum.value);
+                
+
+                // Create y scale for the current plot based on its maximum value
+                var yScale;
+                if(normalise){
+                    yScale = d3.scaleLinear()
+                        .domain([0, maxVal])
+                        .range([height, 0]);
+                }else{
+                    yScale = d3.scaleLinear()
+                        .domain([0, d3.max(chartData, datum => datum.value)])
+                        .range([height, 0]);
+                }
+                // Append y axis to the current plot
+                d3.select(this).append("g")
+                 .call(d3.axisLeft(yScale).ticks(nYTicks));
+
+                // Create line generator for the current plot
+                const line = d3.line()
+                    .x(datum => xScale(datum.newhour))
+                    .y(datum => yScale(datum.value))
+                    .curve(d3.curveStepBefore);
+
+                // Append path to the current plot
+                var maxHr;
+                d3.select(this).append("path")
+                    .datum(plotData.map(datum => {
+                        datum.newhour = datum.hour + (periodHrs * (datum.plot - i));
+                        maxHr = d3.max(plotData, d => d.newhour);
+                        return datum;
+                    }))
+                    .attr("d", d => `${line(d, i)} 
+                                            L${xScale(maxHr)},${height} 
+                                            L${xScale(0)},${height} Z`
+                        )
+                    .attr("stroke", "none")
+                    .attr("fill", "rgba(1,1,1,0.6)"); //make slightly transparrent so we can see if they overlap
+            });
 
 
             // Add the x axis to the bottom plot
@@ -129,15 +120,9 @@ function actigram(chartID) {
                 .call(xAxis)
                 .attr("class", "xaxis1st");
 
-            // Add the y axis to each plot
-            var nYTicks = Math.round(height / 20)
-            if(nYTicks < 2){nYTicks = 2}
-            const yAxis = d3.axisLeft(yScale).ticks(nYTicks);
-            g.selectAll(".acti")
-                .append("g")
-                .call(yAxis);
+            
 
-//TODO: put in the start date as a label on the y-axis
+            /// Add in the start time to the left of each plot
             var start = new Date(startTime);
             g.selectAll(".acti")
                 .append("text")
@@ -252,6 +237,12 @@ function actigram(chartID) {
         }else{
             margin.left = 60;
         }
+        return chart;
+    };
+
+    chart.normalise = function (_) {
+        if (!arguments.length) return normalise;
+        normalise = +_;
         return chart;
     };
 
@@ -451,6 +442,10 @@ function actigram(chartID) {
     controlsDiv.appendChild(document.createElement('hr'));
 
 
+//-------------------------------------
+//-------------------------------------
+//-------------------------------------
+
 
 
     const editplotheading = document.createElement("div")
@@ -484,6 +479,39 @@ function actigram(chartID) {
         // add the slider control to the DOM
         controlsDiv.appendChild(PeriodHrsDiv);
 
+
+
+        // NORMALISE
+        const normaliseInput = document.createElement('input');
+        normaliseInput.type = 'checkbox';
+        normaliseInput.checked = normalise;
+        normaliseInput.id = 'normalise-input';
+
+        // add an event listener to the checkbox to update the normalise flag of the element
+        normaliseInput.addEventListener('change', () => {
+            this.normalise(normaliseInput.checked);
+            //UPDATE THE DATA AND REDRAW HERE
+            this.update(this.getRawData())
+        });
+
+        // create a label for the checkbox control
+        const normaliseLabel = document.createElement('label');
+        normaliseLabel.innerText = 'Normalise:';
+        normaliseLabel.setAttribute('for', 'normalise-input');
+
+        // wrap the label and checkbox controls in a div
+        const normaliseDiv = document.createElement('div');
+        normaliseDiv.appendChild(normaliseLabel);
+        normaliseDiv.appendChild(normaliseInput);
+        
+
+        // add the checkbox control to the DOM
+        controlsDiv.appendChild(normaliseDiv);
+
+
+//-------------------------------------
+//------------------------------------- Somewhat generic code for plot sizing
+//-------------------------------------
 
 
     //WIDTH
@@ -533,6 +561,10 @@ function actigram(chartID) {
         // add the slider control to the DOM
         controlsDiv.appendChild(heightDiv);
 
+
+//-------------------------------------
+//------------------------------------- More bespoke to actigrams
+//-------------------------------------
 
 
     //BETWEEN

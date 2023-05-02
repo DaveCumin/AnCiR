@@ -1,4 +1,4 @@
-import { w2tabs, w2prompt, query, w2grid } from "/dependencies/w2ui-2.0.es6.min.js";
+import { w2tabs, w2prompt, query, w2grid } from "../dependencies/w2ui-2.0.es6.min.js";
 
 // TABS FOR PLOTS
 let tabs = new w2tabs({
@@ -115,7 +115,7 @@ let datatabs = new w2tabs({
     //add the export button if first tab
     console.log(datatabs.tabs.length)
     if(datatabs.tabs.length === 0){
-        document.getElementById("exportdatabutton").innerHTML = `   <button onclick="exportData()">EXPORT Data</button>
+        document.getElementById("exportdatabutton").innerHTML = `   <button onclick="exportData()">EXPORT as csv</button>
                                                                     <hr>`;
     }
 

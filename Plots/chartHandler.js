@@ -1,4 +1,4 @@
-import { w2popup } from "/dependencies/w2ui-2.0.es6.min.js";
+import { w2popup } from "../dependencies/w2ui-2.0.es6.min.js";
 
 
 window.makePlot = function() {

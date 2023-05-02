@@ -15,7 +15,7 @@ To create an actigram, click on *Plot*>*Actigram*. You can change the data that 
 
 The other controls for the actigram should be self-explanatory. Have fun.
 
-## For coders
+## For developers
 It will be clear to most that I have taught myself Javascript and leaned on ChatGPT, StackOverflow, etc to hack this together. Any advice or offers of support will be welcommed.
 
 Broadly, the data is stored in a `DataList` object; figures are stored in `charts`. However, each chart may require pre-processing of the data (or at least a selection of the subset of an imported file) - that data can be found in `charts[i].chart.chartData()`.

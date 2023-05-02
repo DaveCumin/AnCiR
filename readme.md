@@ -6,7 +6,7 @@ The UI is built with the [W2UI v2.0](https://w2ui.com/web/) package.
 Figures are drawn using [D3 v7](https://d3js.org/)
 Data is imported using the [Papaparse](https://www.papaparse.com/) tools
 
-## For coders
+## For users
 It should start with some sample data already in the **Data** section on the left hand side. If you want to generate more sample data, just click on *Data*>*Create* and a new Sample set should appear. Similarly, if you have your own .csv file, then you can import it and it should show up in the list.
 Clicking on the name of the data table should display the contents in the bottom viewer, so you can see what the data look like.
 To create an actigram, click on *Plot*>*Actigram*. You can change the data that is used by using the dropdown lists under *Data for this plot* on the right hand panel. To see the post-processed data useed in the plot, click on the hyperlinked data and see it appear below.

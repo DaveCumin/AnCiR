@@ -1,4 +1,4 @@
-import { w2tabs, w2prompt, query, w2grid } from "/dependencies/w2ui.min.js";
+import { w2tabs, w2prompt, query, w2grid } from "/dependencies/w2ui-2.0.es6.min.js";
 
 // TABS FOR PLOTS
 let tabs = new w2tabs({

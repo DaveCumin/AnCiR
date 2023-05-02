@@ -1,4 +1,4 @@
-import { w2toolbar } from '/dependencies/w2ui.min.js'
+import { w2toolbar } from '/dependencies/w2ui-2.0.es6.min.js'
 
 let pstyle = 'background: #eeeeee; padding: 5px;'
 

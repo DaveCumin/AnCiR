@@ -1,5 +1,5 @@
 // THE MAIN LAYOUT
-import { w2layout } from '/dependencies/w2ui.min.js'
+import { w2layout } from '/dependencies/w2ui-2.0.es6.min.js'
    
 let pstyle = 'background: #eeeeee; padding: 5px; border:1px solid darkgrey'
 

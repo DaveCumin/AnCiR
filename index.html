@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Data Analysis tool</title>
+    <link rel="stylesheet" type="text/css" href="/dependencies/w2ui.min.css" />
+    <script src="/dependencies/d3v7min.js"></script>
+    <script src="/dependencies/papaparse.min.js"></script>
+    
+    <script src="/globals.js"></script>
+    <script src="/Plots/actigram.js"></script>
+    <script type="module" src="/Plots/chartHandler.js"></script>
+
+
+    <script type="module" src="/UI/mainLayout.js"></script>
+    <script type="module" src="/Data/importData.js"></script>
+    <script type="module" src="/UI/toolbar.js"></script>
+    <script type="module" src="/UI/tabs.js"></script>
+
+    <script src="/UI/sidebar_data.js"></script>
+    <script src="/UI/messages.js"></script>
+    <script src="/Data/generateSampleData.js"></script>
+  </head>
+  <body style="background: black">
+    <div id="layout" style="width: 100%; height: calc(100vh - 16px)"></div>
+  </body>
+  <script>
+
+//TESTING
+    function makeActigram(ID) {
+        var d = dataList[0].data;
+        
+        if (ID == 0) {
+          const newData1 = [];
+          for (const dataPoint of d) {
+            newData1.push({
+              date: dataPoint.date,
+              value: dataPoint.value_0,
+            });
+          }
+
+        var testActigram = actigram(0)
+                            .width(400)
+                            .height(20)
+                            .dataTabCols({table: 'Sample0', dates: 'date', values: 'value_0'})
+                            .putcontrols("#controls");
+
+        charts.push({
+            id: "testActigram",
+            selection: "#thePlot"+0,
+            chart: testActigram,
+        });
+
+          
+          d3.select(charts[ID].selection)
+            .datum(newData1)
+            .call(charts[ID].chart);
+        }
+
+        if (ID == 1) {
+          const newData2 = [];
+          for (const dataPoint of d) {
+            newData2.push({
+              date: dataPoint.date,
+              value: dataPoint.value_1,
+            });
+          }
+
+        var testActigram = actigram(1)
+                            .width(600)
+                            .height(120)
+                            .dataTabCols({table: 'Sample0', dates: 'date', values: 'value_1'})
+                            .putcontrols("#controls");
+
+        charts.push({
+            id: "testActigram1",
+            selection: "#thePlot"+1,
+            chart: testActigram,
+        });
+
+          d3.select(charts[ID].selection)
+            .datum(newData2)
+            .call(charts[ID].chart);
+        }
+
+
+        d = dataList[1].data;
+        if (ID == 2) {
+          const newData3 = [];
+          for (const dataPoint of d) {
+            newData3.push({
+              date: dataPoint.date,
+              value: dataPoint.value_0,
+            });
+          }
+
+        var testActigram2 = actigram(2)
+                            .width(500)
+                            .height(10)
+                            .dataTabCols({table: 'Sample1', dates: 'date', values: 'value_0'})
+                            .putcontrols("#controls");
+
+        charts.push({
+            id: "testActigram2",
+            selection: "#thePlot"+2,
+            chart: testActigram2,
+        });
+
+          
+          d3.select(charts[ID].selection)
+            .datum(newData3)
+            .call(charts[ID].chart);
+        }
+      }
+
+
+
+       // Generate some sample data to start with and make actigram
+    document.addEventListener("DOMContentLoaded", function () {
+        //Add the tabs
+        setTimeout(function() {
+            tabs.render("#tabs");
+            tabs.refresh();
+            
+            datatabs.render("#datatabs");
+            datatabs.refresh();
+        }, 100);
+
+
+        //Create test data to start with
+        setTimeout(function() {
+            generateData(); //sample data to start
+            generateData(); // more sample data
+            
+            addTab()
+            makeActigram(0);
+            addTab()
+            makeActigram(1);
+            addTab()
+            makeActigram(2);
+        
+            tabs.click("tab1")
+        }, 500);
+
+    });
+  </script>
+</html>

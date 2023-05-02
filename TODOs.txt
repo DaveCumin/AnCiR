@@ -1,0 +1,5 @@
+- date formatting {make guess and allow option to change}
+- export for clk
+- normalise by 'row'
+
+

@@ -5,11 +5,8 @@ let tabs = new w2tabs({
   box: "#tabs",
   name: "tabs",
   active: "tab1",
-  tabs: [
-    //{ id: "tab1", text: "Tab 1", closable: true },
-    //{ id: "tab2", text: "Tab 2", closable: true },
-    //{ id: "tab3", text: "Tab 3", closable: true },
-  ],
+  
+  tabs: [],
   onClick(event) {
     //get the index
     const index = this.tabs.findIndex((t) => t.id == event.target);

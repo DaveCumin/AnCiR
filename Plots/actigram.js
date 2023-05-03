@@ -658,11 +658,12 @@ function actigram(chartID) {
     datalistdataheading.appendChild(datalistdataheadingtext)
     controlsDiv.appendChild(datalistdataheading);
     controlsDiv.appendChild(chartDataDiv)
+
     document.getElementById('chartData').innerHTML = `<ul>
                                                             <li><a href='javascript:adddataTab("chartList",${this.chartID()});'>
-                                                                data1: ${tabs.tabs[this.chartID()].text}</a></li>
+                                                                data1: Plot ${this.chartID()+1}</a></li>
                                                             <li><a href='javascript:adddataTab("chartListlight",${this.chartID()});'>
-                                                                data2: ${tabs.tabs[this.chartID()].text}</a></li>
+                                                                data2: Plot ${this.chartID()+1}</a></li>
                                                         </ul>`
     //line separating the data from the controls
     controlsDiv.appendChild(document.createElement('hr'));

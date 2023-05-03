@@ -19,7 +19,7 @@ let tabs = new w2tabs({
 
     //----------- CHANGE THE TAB -----------
     //single click = change the plot area and load the appropriate chart
-    query("#plotContent").html(`<div id="thePlot${index}"></div>`);
+    query("#plotContent").html(`<div id="${charts[index].selection.split("#")[1]}"></div>`);
     
     d3.select(charts[index].selection)
        .call(charts[index].chart);
@@ -34,6 +34,9 @@ let tabs = new w2tabs({
          document.getElementById("controls").innerHTML = "";
          document.getElementById("exportplotbutton").innerHTML = "";
      }
+
+//TODO: need to remove the chart and adjust accordingly
+     charts.splice(this.tabs.findIndex((t) => t.id == event.target), 1)
  },
 });
 
@@ -44,10 +47,19 @@ window.addTab = function () {
                                                                     <hr>`;
     }
     
-    const ind = tabs.tabs.length + 1;
-    tabs.add({ id: "tab" + ind, text: "Plot " + ind, closable: true  });
+
+    let ind = tabs.tabs.length+1; // get the next index for the new tab
+    let newId = "tab" + ind; // generate a new id based on the index
+    while (tabs.tabs.findIndex(tab => tab.id === newId) !== -1) {
+        ind++; // increment the index
+        newId = "tab" + ind; // generate a new id based on the updated index
+    }
+    tabs.add({ id: newId, text: "Plot " + ind, closable: true });
+
     query("#plotContent").html(`<div id="thePlot${ind-1}"></div>`);
     tabs.refresh();
+
+    return ind;
 };
 
 function updateTabName (tabIndex, newname) {
@@ -110,12 +122,10 @@ let datatabs = new w2tabs({
   
   window.adddataTab = function (from, index) {
     //add the export button if first tab
-    console.log(datatabs.tabs.length)
     if(datatabs.tabs.length === 0){
         document.getElementById("exportdatabutton").innerHTML = `   <button onclick="exportDataCSV()">EXPORT as csv</button>
                                                                     <hr>`;
     }
-
 
     //now deal with the new tab
     if(typeof datatabs.click("datatab_" + from + "_" + index) !== 'undefined'){ //if it already exists in the tabs do noting
@@ -124,10 +134,10 @@ let datatabs = new w2tabs({
             datatabs.add({ id: "datatab_" + from + "_" + index, text: dataList[index].name, closable: true });
         }
         if(from === 'chartList'){
-            datatabs.add({ id: "datatab_" + from + "_" + index, text: tabs.tabs[index].text, closable: true });
+            datatabs.add({ id: "datatab_" + from + "_" + index, text: "data1:"+tabs.tabs[index-1].text, closable: true });
         }
         if(from === 'chartListlight'){
-          datatabs.add({ id: "datatab_" + from + "_" + index, text: tabs.tabs[index].text, closable: true });
+          datatabs.add({ id: "datatab_" + from + "_" + index, text: "data2:"+tabs.tabs[index-1].text, closable: true });
         }
         showDataInTab(from, index);
         datatabs.refresh();
@@ -160,7 +170,7 @@ let datatabs = new w2tabs({
     }
     if(from === 'chartList'){
         //get the keys for headers
-        const keys = Object.keys(charts[index].chart.chartData()[0]).filter(k => k!='recid');
+        const keys = Object.keys(charts[charts.findIndex(c => c.chartID === index)].chart.chartData()[0]).filter(k => k!='recid');
         var maxsize = 100+"px"
             
         columnNames = keys.map(key => ({
@@ -169,14 +179,14 @@ let datatabs = new w2tabs({
             size: maxsize
         }));
         //add recid for the table w2grid
-        var tableData = charts[index].chart.chartData()
+        var tableData = charts[charts.findIndex(c => c.chartID === index)].chart.chartData()
         for(let i=0; i<tableData.length; i++){
             tableData[i].recid = i+1;
         }
     }
     if(from === 'chartListlight'){
       //get the keys for headers
-      const keys = Object.keys(charts[index].chart.lightData()[0]).filter(k => k!='recid');
+      const keys = Object.keys(charts[charts.findIndex(c => c.chartID === index)].chart.lightData()[0]).filter(k => k!='recid');
       var maxsize = 100+"px"
           
       columnNames = keys.map(key => ({
@@ -185,7 +195,7 @@ let datatabs = new w2tabs({
           size: maxsize
       }));
       //add recid for the table w2grid
-      var tableData = charts[index].chart.lightData()
+      var tableData = charts[charts.findIndex(c => c.chartID === index)].chart.lightData()
       for(let i=0; i<tableData.length; i++){
           tableData[i].recid = i+1;
       }

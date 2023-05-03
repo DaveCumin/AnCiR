@@ -42,36 +42,38 @@ function doToolbarItemClick(input){
 }
 
 function makeNewActigram(){
-    const ID = tabs.tabs.length;
-    addTab()
-    var d = dataList[0].data;
-    const newData1 = [];
-    for (const dataPoint of d) {
-    newData1.push({
-        date: dataPoint.date,
-        value: dataPoint.value_0,
-    });
-    }
 
-    var testActigram = actigram(ID)
-            .width(200+Math.round(Math.random()*200))
-            .height(15+Math.round(Math.random()*15))
-            .dataTabCols({table: 'Sample0', dates: 'date', values: 'value_0'})
-            .lightTabCols({table: 'Sample0', dates: 'date', values: 'value_1'})
-            .putcontrols("#controls");
+    const ID = addTab()
+
+    var d = dataList[0].data;
+    const newData3 = [];
+          for (const dataPoint of d) {
+            newData3.push({
+              date: dataPoint.date,
+              value: dataPoint.value_0,
+            });
+          }
+
+    var testActigram2 = actigram(ID-1)
+                        .width(400)
+                        .height(15)
+                        .dataTabCols({table: 'Sample1', dates: 'date', values: 'value_0'})
+                        .lightTabCols({table: 'Sample1', dates: 'date', values: 'value_1'})
+                        .putcontrols("#controls");
 
     charts.push({
-        id: "testActigram",
-        selection: "#thePlot"+ID,
-        chart: testActigram,
+        chartID: (ID-1),
+        selection: "#thePlot"+(ID-1),
+        chart: testActigram2,
     });
 
-    d3.select(charts[ID].selection)
-    .datum(newData1)
-    .call(charts[ID].chart);
+    const gotolast = charts.length -1
+    d3.select(charts[gotolast].selection)
+        .datum(newData3)
+        .call(charts[gotolast].chart);
 
     setTimeout(function() {
-        tabs.click("tab"+(ID+1))
+        tabs.click("tab"+(ID))
     }, 310);
 }
 

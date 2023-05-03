@@ -121,6 +121,7 @@ let datatabs = new w2tabs({
   });
   
   window.adddataTab = function (from, index) {
+    index = charts.findIndex(c => c.chartID === index)
     //add the export button if first tab
     if(datatabs.tabs.length === 0){
         document.getElementById("exportdatabutton").innerHTML = `   <button onclick="exportDataCSV()">EXPORT as csv</button>
@@ -134,10 +135,10 @@ let datatabs = new w2tabs({
             datatabs.add({ id: "datatab_" + from + "_" + index, text: dataList[index].name, closable: true });
         }
         if(from === 'chartList'){
-            datatabs.add({ id: "datatab_" + from + "_" + index, text: "data1:"+tabs.tabs[index-1].text, closable: true });
+            datatabs.add({ id: "datatab_" + from + "_" + index, text: "data1:"+tabs.tabs[index].text, closable: true });
         }
         if(from === 'chartListlight'){
-          datatabs.add({ id: "datatab_" + from + "_" + index, text: "data2:"+tabs.tabs[index-1].text, closable: true });
+          datatabs.add({ id: "datatab_" + from + "_" + index, text: "data2:"+tabs.tabs[index].text, closable: true });
         }
         showDataInTab(from, index);
         datatabs.refresh();
@@ -170,7 +171,7 @@ let datatabs = new w2tabs({
     }
     if(from === 'chartList'){
         //get the keys for headers
-        const keys = Object.keys(charts[charts.findIndex(c => c.chartID === index)].chart.chartData()[0]).filter(k => k!='recid');
+        const keys = Object.keys(charts[index].chart.chartData()[0]).filter(k => k!='recid');
         var maxsize = 100+"px"
             
         columnNames = keys.map(key => ({
@@ -179,14 +180,14 @@ let datatabs = new w2tabs({
             size: maxsize
         }));
         //add recid for the table w2grid
-        var tableData = charts[charts.findIndex(c => c.chartID === index)].chart.chartData()
+        var tableData = charts[index].chart.chartData()
         for(let i=0; i<tableData.length; i++){
             tableData[i].recid = i+1;
         }
     }
     if(from === 'chartListlight'){
       //get the keys for headers
-      const keys = Object.keys(charts[charts.findIndex(c => c.chartID === index)].chart.lightData()[0]).filter(k => k!='recid');
+      const keys = Object.keys(charts[index].chart.lightData()[0]).filter(k => k!='recid');
       var maxsize = 100+"px"
           
       columnNames = keys.map(key => ({
@@ -195,7 +196,7 @@ let datatabs = new w2tabs({
           size: maxsize
       }));
       //add recid for the table w2grid
-      var tableData = charts[charts.findIndex(c => c.chartID === index)].chart.lightData()
+      var tableData = charts[index].chart.lightData()
       for(let i=0; i<tableData.length; i++){
           tableData[i].recid = i+1;
       }

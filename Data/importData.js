@@ -49,7 +49,7 @@ window.importFunc = function(){
 }
 
 
-window.exportData = function(){
+window.exportDataCSV = function(){
   const activeTab = datatabs.active;
   const fromindex = activeTab.split("_");
 

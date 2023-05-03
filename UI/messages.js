@@ -1,5 +1,8 @@
 function sendMessage(text){
     const newmessage = document.createElement('div');
     newmessage.innerHTML = text;
-    document.getElementById('messages').append(newmessage)
+    const messagesDiv = document.getElementById('messages');
+    messagesDiv.append(newmessage);
+    messagesDiv.scrollIntoView(false);
+
 }

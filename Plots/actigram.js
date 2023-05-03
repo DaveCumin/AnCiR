@@ -1,7 +1,7 @@
 function actigram(chartID) {
 
     if (!arguments.length) chartID = -1;
-    var margin = { top: 2, right: 10, bottom: 50, left: 60, between: 5 },
+    var margin = { top: 5, right: 10, bottom: 50, left: 60, between: 5 },
         width = 400,
         height = 10,
         periodHrs = 24,
@@ -139,24 +139,32 @@ function actigram(chartID) {
                 .attr("font-size", "12px")
 
             //interactivity
-            svg.merge(svgEnter).on("click", function(){
-                var mouse = d3.pointer(event);
-                
-                /*
-                svg.merge(svgEnter).append("circle")
-                    .attr("cx", mouse[0])
-                    .attr("cy", mouse[1])
-                    .attr("r", 2)
-                    .attr("fill", "#039BE5")
-                */
-                const clickedPlot = Math.floor( (mouse[1]-margin.top) / (height+margin.between));
-                const clickedTime = ((mouse[0]-margin.left*2) / (width));              
-                const clickedOut = new Date(startTime + (clickedPlot * periodHrs) + clickedTime)
-                
-                var end = new Date();
-                end.setTime(start.getTime() + (clickedPlot + clickedTime)*periodHrs*3600000);
+            const tooltip = d3.select(this).append("div")
+                                    .attr("class", "tooltip")
+                                    .style('position','absolute')
+                                    .style("opacity", 0);
+                    
+                               
 
-                sendMessage("Clicked at " + end.toLocaleString('en-US', {year: 'numeric', month: 'short', day: '2-digit', hour12: true, hour: 'numeric', minute: 'numeric', second: 'numeric'}))
+            svg.merge(svgEnter)
+                //.on("mouseover", function(){return tooltip.style("visibility", "visible");})
+                .on('mousedown', function(event) {
+                    tooltip
+                        .style("opacity", 1)
+                        .style('position', 'absolute')
+                        .style('left', (event.offsetX + 10) + 'px')
+                        .style('top', (event.offsetY + 10) + 'px')
+                        .style('background', 'rgba(255,255,255,0.8)')
+                        .text(getTimeFromMouseEvent(event))
+                        .style("visibility", "visible");
+
+                })
+                .on("mouseup", function(){return tooltip.style("visibility", "hidden");});
+                //.on("mouseout", function(){return tooltip.style("visibility", "hidden");});
+
+
+            svg.merge(svgEnter).on("click", function(event){
+                sendMessage("Clicked at " + getTimeFromMouseEvent(event))
             });
             
             //put the controls where they need to go, if there is somewhere to put them
@@ -170,6 +178,16 @@ function actigram(chartID) {
                 chartData = makeActiData(newData, periodHrs);
                 selection.call(chart);
             }
+        }
+
+        function getTimeFromMouseEvent(event){
+            const clickedPlot = Math.floor( (event.offsetY-margin.top) / (height+margin.between));
+            const clickedTime = ((event.offsetX-margin.left*2) / (width));
+            var end = new Date();
+            end.setTime(startTime.getTime() + (clickedPlot + clickedTime)*periodHrs*3600000); //3600000 is the number of ms in 1 hour
+            return end.toLocaleString('en-US', 
+                                    {year: 'numeric', month: 'short', day: '2-digit', 
+                                    hour12: true, hour: 'numeric', minute: 'numeric', second: 'numeric'})
         }
     }
 

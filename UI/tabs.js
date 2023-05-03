@@ -112,7 +112,7 @@ let datatabs = new w2tabs({
     //add the export button if first tab
     console.log(datatabs.tabs.length)
     if(datatabs.tabs.length === 0){
-        document.getElementById("exportdatabutton").innerHTML = `   <button onclick="exportData()">EXPORT as csv</button>
+        document.getElementById("exportdatabutton").innerHTML = `   <button onclick="exportDataCSV()">EXPORT as csv</button>
                                                                     <hr>`;
     }
 

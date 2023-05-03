@@ -143,11 +143,9 @@ function actigram(chartID) {
                                     .attr("class", "tooltip")
                                     .style('position','absolute')
                                     .style("opacity", 0);
-                    
                                
 
             svg.merge(svgEnter)
-                //.on("mouseover", function(){return tooltip.style("visibility", "visible");})
                 .on('mousedown', function(event) {
                     tooltip
                         .style("opacity", 1)
@@ -160,10 +158,9 @@ function actigram(chartID) {
 
                 })
                 .on("mouseup", function(){return tooltip.style("visibility", "hidden");});
-                //.on("mouseout", function(){return tooltip.style("visibility", "hidden");});
+                
 
-
-            svg.merge(svgEnter).on("click", function(event){
+            svg.merge(svgEnter).on("dblclick", function(event){
                 sendMessage("Clicked at " + getTimeFromMouseEvent(event))
             });
             

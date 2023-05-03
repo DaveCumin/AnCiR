@@ -9,7 +9,9 @@ function actigram(chartID) {
         putcontrols = "",
         normalise = false,
         dataTabCols, //Reference the 'raw data'; an object with {table: tabname , dates: colname, values: colname}
-        chartData; //This is the 'internal' data that is plotted
+        chartData,
+        lightTabCols,
+        lightData; //This is the 'internal' data that is plotted
 
 
     function chart(selection) {
@@ -22,19 +24,33 @@ function actigram(chartID) {
                 startTime = new Date(startTime);
                 startTime.setHours(0,0,0);         
             }
-            
+//TODO: tidy up this mess of code; make extensible for multiple datasets
+            if(!areObjectsEqual(dataTabCols, lightTabCols) ){ //make the light data if needed
+                var table = dataList.find(item => item.name === lightTabCols.table).data;
+                lightData = [];
+                for (const dataPoint of table) {
+                    lightData.push({
+                        date: dataPoint[lightTabCols.dates],
+                        value: dataPoint[lightTabCols.values],
+                    });
+                } 
+                lightData = makeActiData(lightData, periodHrs);
+            }
+    
             //clear for redraw
             d3.select(this).selectAll("svg").remove();
 
             //create svg
             var svg = d3.select(this)
                 .selectAll("svg")
-                    .data([data])
+                    .data([data]) //only make 1
                     .attr("id", "svg");
             
             //Create the skeletal chart.
             var svgEnter = svg.enter().append("svg");
             var gEnter = svgEnter.append("g");
+
+
 
             // Update the outer dimensions.
             svg.merge(svgEnter)
@@ -45,6 +61,8 @@ function actigram(chartID) {
             var g = svg.merge(svgEnter).select("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+
+
             // Create scales for the x and y axes
             const xScale = d3.scaleLinear()
                 .domain([0, periodHrs])
@@ -53,24 +71,29 @@ function actigram(chartID) {
 
             // Create a group for each plot and position them
             var plots = g.selectAll(".acti")
-                .data(Array.from(Array(chartData.nPlots).keys()))
+                .data(Array.from(Array(chartData.nPlots).keys())) // create the n plots (one for each periodHrs*2, as per the makeActiData)
                 .enter()
                 .append("g")
                 .attr("class", "acti")
                 .attr("transform", (d, i) => `translate(${margin.left}, ${i * height + (i + 1) * margin.between})`);
 
+            // set up the number of ticks for each Y axis
             var nYTicks = Math.round(height / 20)
             if(nYTicks < 2){nYTicks = 2}
 
+
+
+            // Do the magic for each of the plots
             plots.each(function(d, i) {
+                
                 // Filter data for current plot
                 const plotData = chartData.filter(datum => datum.plot === i || datum.plot === (i+1));
-
+                const plotLighData = lightData.filter(datum => datum.plot === i || datum.plot === (i+1));
                 // Get max values for the current plot
                 const maxVal = d3.max(plotData, datum => datum.value);
                 
 
-                // Create y scale for the current plot based on its maximum value
+                // Create y scale for the current plot based on its maximum value, or a function for the normalised version
                 var yScale;
                 if(normalise){
                     yScale = d3.scaleLinear()
@@ -85,6 +108,9 @@ function actigram(chartID) {
                 d3.select(this).append("g")
                  .call(d3.axisLeft(yScale).ticks(nYTicks));
 
+
+
+
                 // Create line generator for the current plot
                 const line = d3.line()
                     .x(datum => xScale(datum.newhour))
@@ -93,20 +119,44 @@ function actigram(chartID) {
 
                 // Append path to the current plot
                 var maxHr;
-                d3.select(this).append("path")
-                    .datum(plotData.map(datum => {
-                        datum.newhour = datum.hour + (periodHrs * (datum.plot - i));
-                        maxHr = d3.max(plotData, d => d.newhour);
-                        return datum;
-                    }))
-                    .attr("d", d => `${line(d, i)} 
-                                            L${xScale(maxHr)},${height} 
-                                            L${xScale(0)},${height} Z`
-                        )
-                    .attr("stroke", "none")
-                    .attr("fill", "rgba(1,1,1,0.6)"); //make slightly transparrent so we can see if they overlap
+
+                if(!areObjectsEqual(dataTabCols, lightTabCols) ){
+                    d3.select(this).selectAll(".path")
+                    .data([plotData, plotLighData]) // Add more data arrays here, possibly 
+                    .enter()
+                    .append("path")
+                    .attr("class", "path")
+                    .attr("d", d => {
+                                return line(d.map(datum => {
+                                    datum.newhour = datum.hour + (periodHrs * (datum.plot - d3.min(d, datum => datum.plot)));
+                                    maxHr = d3.max(d, datum => datum.newhour);
+                                    return datum;
+                                }))+`L${xScale(maxHr)},${height} 
+                                L${xScale(0)},${height} Z`;
+
+                    })
+                    .attr("fill", (d,i) => ['rgba(1,1,1,0.6)', 'rgba(255,0,0,0.2)'][i]);
+                }else{ //the sets are the same
+                    d3.select(this).selectAll(".path")
+                    .data([plotData]) // Only the plot data
+                    .enter()
+                    .append("path")
+                    .attr("class", "path")
+                    .attr("d", d => {
+                                return line(d.map(datum => {
+                                    datum.newhour = datum.hour + (periodHrs * (datum.plot - d3.min(d, datum => datum.plot)));
+                                    maxHr = d3.max(d, datum => datum.newhour);
+                                    return datum;
+                                }))+`L${xScale(maxHr)},${height} 
+                                L${xScale(0)},${height} Z`;
+
+                    })
+                    .attr("fill", 'rgba(1,1,1,0.6)');
+                }
+                
             });
 
+            
 
             // Add the x axis to the bottom plot
             const xaxisScale = d3.scaleLinear()
@@ -213,6 +263,29 @@ function actigram(chartID) {
         return chart;
     };
 
+    chart.lightData = function (_) {
+        if (!arguments.length) return lightData;
+        lightData = +_;
+        return chart;
+    };
+
+    chart.lightTabCols = function (_) {
+        if (!arguments.length) return lightTabCols;
+        lightTabCols = _;
+        
+        //Now make the data
+        var table = dataList.find(item => item.name === lightTabCols.table).data;
+        lightData = [];
+        for (const dataPoint of table) {
+            lightData.push({
+                date: dataPoint[lightTabCols.dates],
+                value: dataPoint[lightTabCols.values],
+            });
+        } 
+        
+        return chart;
+    };
+
     chart.chartID = function (_) {
         if (!arguments.length) return chartID;
         chartID = +_;
@@ -313,7 +386,20 @@ function actigram(chartID) {
     }
 
 
-
+// Check if two objects have the same values
+ areObjectsEqual = function(obj1, obj2) {
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+    if (keys1.length !== keys2.length) {
+      return false;
+    }
+    for (let key of keys1) {
+      if (obj1[key] !== obj2[key]) {
+        return false;
+      }
+    }
+    return true;
+  }
 
 
 
@@ -326,6 +412,7 @@ function actigram(chartID) {
         this.controls(chartID);
         return chart;
     };
+
     chart.controls = function () {
         //clear the controls
         document.getElementById(this.putcontrols().replace("#", "")).innerHTML = "";
@@ -338,12 +425,17 @@ function actigram(chartID) {
         const controlsDiv = document.getElementById(this.putcontrols().replace("#", ""));
  
 
-    //DATA
+    //PLOT DATA
     const dataheading = document.createElement("div")
     const dataheadingtext = document.createElement("h4")
     dataheadingtext.innerHTML = "Data for this plot"
     dataheading.appendChild(dataheadingtext)
     controlsDiv.appendChild(dataheading);
+    const actidataheading = document.createElement("div")
+    const actidataheadingtext = document.createElement("h5")
+    actidataheadingtext.innerHTML = "Dataset 1:"
+    actidataheading.appendChild(actidataheadingtext)
+    controlsDiv.appendChild(actidataheading);
 
     //make the data input - table, dates, values (conditional dropdowns)
     // create dropdown list for sample selection
@@ -427,8 +519,111 @@ function actigram(chartID) {
     controlsDiv.appendChild(sampleDiv);
     controlsDiv.appendChild(dataKeysDiv);
     controlsDiv.appendChild(dataValuesDiv);
+
+
+
+
+
+
+    //LIGHT DATA
+    const lightdataheading = document.createElement("div")
+    const lightdataheadingtext = document.createElement("h5")
+    lightdataheadingtext.innerHTML = "Dataset 2:"
+    lightdataheading.appendChild(lightdataheadingtext)
+    controlsDiv.appendChild(lightdataheading);
+
+    //make the data input - table, dates, values (conditional dropdowns)
+    // create dropdown list for sample selection
+    const lighttableSelect = document.createElement('select');
+    lighttableSelect.id = 'sample-dropdown';
+
+    // add the table names
+    for (let i = 0; i < dataList.length; i++) {
+        const option = document.createElement('option');
+        option.value = dataList[i].name;
+        option.text = dataList[i].name;
+        lighttableSelect.appendChild(option);
+    }
+    lighttableSelect.value = this.lightTabCols().table;
+
+    // create dropdown list for data keys
+    const lightdateColumn = document.createElement('select');
+    lightdateColumn.id = 'data-keys-dropdown';
+
+    // create dropdown list for data keys within a sample
+    const lightvalueColumn = document.createElement('select');
+    lightvalueColumn.id = 'data-values-dropdown';
+
+    // add event listener to sample dropdown to update data key dropdowns
+    lighttableSelect.addEventListener('change', () => {
+        const sampleName = lighttableSelect.value;
+        const sampleData = dataList.find(sample => sample.name === sampleName).data;
+        
+        // clear previous options
+        lightdateColumn.innerHTML = '';
+        lightvalueColumn.innerHTML = '';
+
+        // get keys from first item in sample data array
+        const keys = Object.keys(sampleData[0]);
+        keys.forEach(key => {
+            // add key to data key dropdowns
+            const keyOption = document.createElement('option');
+            keyOption.value = key;
+            keyOption.text = key;
+            lightdateColumn.appendChild(keyOption);
+
+            const valueOption = document.createElement('option');
+            valueOption.value = key;
+            valueOption.text = key;
+            lightvalueColumn.appendChild(valueOption);
+        });
+        lightdateColumn.value = this.lightTabCols().dates;
+        lightvalueColumn.value = this.lightTabCols().values;    
+    });
+    
+    lighttableSelect.dispatchEvent(new Event('change'));
+
+
+    // create labels for dropdown lists
+    const lighttablelabel = document.createElement('label');
+    lighttablelabel.innerText = 'Table: ';
+    lighttablelabel.setAttribute('for', 'sample-dropdown');
+
+    const lightdatelabel = document.createElement('label');
+    lightdatelabel.innerText = 'Dates: ';
+    lightdatelabel.setAttribute('for', 'data-keys-dropdown');
+
+    const lightvaluelabel = document.createElement('label');
+    lightvaluelabel.innerText = 'Values: ';
+    lightvaluelabel.setAttribute('for', 'data-values-dropdown');
+
+    // wrap dropdown lists and labels in divs
+    const lightsampleDiv = document.createElement('div');
+    lightsampleDiv.appendChild(lighttablelabel);
+    lightsampleDiv.appendChild(lighttableSelect);
+
+    const lightdataKeysDiv = document.createElement('div');
+    lightdataKeysDiv.appendChild(lightdatelabel);
+    lightdataKeysDiv.appendChild(lightdateColumn);
+
+    const lightdataValuesDiv = document.createElement('div');
+    lightdataValuesDiv.appendChild(lightvaluelabel);
+    lightdataValuesDiv.appendChild(lightvalueColumn);
+
+    // add dropdown lists to controlsDiv
+    controlsDiv.appendChild(lightsampleDiv);
+    controlsDiv.appendChild(lightdataKeysDiv);
+    controlsDiv.appendChild(lightdataValuesDiv);
+
+
+
+
+
     
     
+    const breakdiv = document.createElement('br');
+    controlsDiv.appendChild(breakdiv);
+
     // create a button element
     const changedata = document.createElement('button');
     changedata.textContent = 'Update';
@@ -441,18 +636,34 @@ function actigram(chartID) {
         const selectedDateCol= dateColumn.value;
         const selectedValCol = valueColumn.value;
 
+        //light
+        const lightselectedTable = lighttableSelect.value;
+        const lightselectedDateCol= lightdateColumn.value;
+        const lightselectedValCol = lightvalueColumn.value;
+
+
         //then update with that gotten data
         this.dataTabCols({table: selectedTable , dates: selectedDateCol, values: selectedValCol})
+        this.lightTabCols({table: lightselectedTable , dates: lightselectedDateCol, values: lightselectedValCol})
         this.update(this.getRawData())
     });
 
     
     //Add in the data to be able to view it in the viewer
     const chartDataDiv = document.createElement('div');
-        chartDataDiv.id = 'chartData';
+    chartDataDiv.id = 'chartData';
+    const datalistdataheading = document.createElement("div")
+    const datalistdataheadingtext = document.createElement("h5")
+    datalistdataheadingtext.innerHTML = "The data used for the plot:"
+    datalistdataheading.appendChild(datalistdataheadingtext)
+    controlsDiv.appendChild(datalistdataheading);
     controlsDiv.appendChild(chartDataDiv)
-    document.getElementById('chartData').innerHTML = `<ul><li><a href='javascript:adddataTab("chartList",${this.chartID()});'>${tabs.tabs[this.chartID()].text}</a></li></ul>`
-
+    document.getElementById('chartData').innerHTML = `<ul>
+                                                            <li><a href='javascript:adddataTab("chartList",${this.chartID()});'>
+                                                                data1: ${tabs.tabs[this.chartID()].text}</a></li>
+                                                            <li><a href='javascript:adddataTab("chartListlight",${this.chartID()});'>
+                                                                data2: ${tabs.tabs[this.chartID()].text}</a></li>
+                                                        </ul>`
     //line separating the data from the controls
     controlsDiv.appendChild(document.createElement('hr'));
 

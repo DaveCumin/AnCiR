@@ -126,6 +126,9 @@ let datatabs = new w2tabs({
         if(from === 'chartList'){
             datatabs.add({ id: "datatab_" + from + "_" + index, text: tabs.tabs[index].text, closable: true });
         }
+        if(from === 'chartListlight'){
+          datatabs.add({ id: "datatab_" + from + "_" + index, text: tabs.tabs[index].text, closable: true });
+        }
         showDataInTab(from, index);
         datatabs.refresh();
         datatabs.click("datatab_" + from + "_" + index);
@@ -171,6 +174,22 @@ let datatabs = new w2tabs({
             tableData[i].recid = i+1;
         }
     }
+    if(from === 'chartListlight'){
+      //get the keys for headers
+      const keys = Object.keys(charts[index].chart.lightData()[0]).filter(k => k!='recid');
+      var maxsize = 100+"px"
+          
+      columnNames = keys.map(key => ({
+          field: key,
+          text: key,
+          size: maxsize
+      }));
+      //add recid for the table w2grid
+      var tableData = charts[index].chart.lightData()
+      for(let i=0; i<tableData.length; i++){
+          tableData[i].recid = i+1;
+      }
+  }
     
     grid.columns = columnNames;
     grid.records = tableData;

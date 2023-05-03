@@ -57,6 +57,7 @@ function makeNewActigram(){
             .width(200+Math.round(Math.random()*200))
             .height(15+Math.round(Math.random()*15))
             .dataTabCols({table: 'Sample0', dates: 'date', values: 'value_0'})
+            .lightTabCols({table: 'Sample0', dates: 'date', values: 'value_1'})
             .putcontrols("#controls");
 
     charts.push({

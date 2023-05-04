@@ -8,7 +8,7 @@ function actigram(chartID) {
         startTime = new Date(),
         putcontrols = "",
         normalise = false,
-        allDataSources = [{name: "main data", table: "", dates: "", values: "", colour:""}],
+        allDataSources = [{name: "main data", table: "", dates: "", values: ""}],
         plottingData = []; //the data used in the plot
 
 
@@ -50,10 +50,12 @@ function actigram(chartID) {
             var svgEnter = svg.enter().append("svg");
             var gEnter = svgEnter.append("g");
 
+
+
             // Update the outer dimensions.
             svg.merge(svgEnter)
                 .attr("width", 2* (width+margin.left+margin.right) )
-                .attr("height", plottingData[0].nPlots*(height+margin.between) + 2*( margin.top + margin.bottom) );
+                .attr("height", plottingData[0].nPlots*(height+margin.between) + margin.top + margin.bottom);
             
             // Update the inner dimensions.
             var g = svg.merge(svgEnter).select("g")
@@ -81,58 +83,59 @@ function actigram(chartID) {
 
             // Do the magic for each of the plots
             plots.each(function(d, i) {
-                const plotContainer = d3.select(this);
                 
-                // Create y scale for the current plot based on its maximum value, or a function for the normalised version
-                const maxVals = plottingData.map(pd => d3.max(pd.filter(datum => datum.plot === i || datum.plot === (i+1)), datum => datum.value));
-                const maxVal = d3.max(maxVals);
-                
-            
-                var yScale;
-                if(normalise){
-                    yScale = d3.scaleLinear()
-                        .domain([0, maxVal])
-                        .range([height, 0]);
-                }else{
-                    yScale = d3.scaleLinear()
-                        .domain([0, maxVal])
-                        .range([height, 0]);
-                }
-            
-                // Append y axis to the current plot
-                //if(i===0){
-                    plotContainer.append("g")
-                        .call(d3.axisLeft(yScale).ticks(nYTicks));
- /*               }else{
-                    const axisOffset = i * 30; // calculate the offset for the x-axis
-                    plotContainer.append("g")
-                        .attr("transform", `translate(${axisOffset},10)`)
-                        .call(d3.axisRight(yScale).ticks(nYTicks));
-                }
-*/
-                // Create line generator for the current plot
-                const line = d3.line()
-                    .x(datum => xScale(datum.newhour))
-                    .y(datum => yScale(datum.value))
-                    .curve(d3.curveStepBefore);
-            
-                const paths = plotContainer.selectAll(".path")
-                    .data(plottingData) //do for each of the data entered
-                    .join("path")
+                 plottingData.forEach( pd => {
+                    console.log("dat for "+chartID)
+                    // Filter data for current plot
+                    const plotData = pd.filter(datum => datum.plot === i || datum.plot === (i+1)); 
+
+                    // Get max values for the current plot
+                    const maxVal = d3.max(plotData, datum => datum.value);
+                    
+
+                    // Create y scale for the current plot based on its maximum value, or a function for the normalised version
+                    var yScale;
+                    if(normalise){
+                        yScale = d3.scaleLinear()
+                            .domain([0, maxVal])
+                            .range([height, 0]);
+                    }else{
+                        yScale = d3.scaleLinear()
+                            .domain([0, d3.max(plotData, datum => datum.value)])
+                            .range([height, 0]);
+                    }
+                    // Append y axis to the current plot
+                    d3.select(this).append("g")
+                    .call(d3.axisLeft(yScale).ticks(nYTicks));
+
+                    // Create line generator for the current plot
+                    const line = d3.line()
+                        .x(datum => xScale(datum.newhour))
+                        .y(datum => yScale(datum.value))
+                        .curve(d3.curveStepBefore);
+
+                    // Append path to the current plot
+                    var maxHr;
+
+                    d3.select(this).selectAll(".path")
+                    .data([plotData]) // just the 1 path for the data
+                    .enter()
+                    .append("path")
                     .attr("class", "path")
-                    .attr("fill", (d,i) => allDataSources[i].colour)
                     .attr("d", d => {
-                        const plotData = d.filter(datum => datum.plot === i || datum.plot === (i+1));
-                        var maxHr;
-                        return line(plotData.map(datum => {
-                            datum.newhour = datum.hour + (periodHrs * (datum.plot - d3.min(plotData, datum => datum.plot)));
-                            maxHr = d3.max(plotData, datum => datum.newhour);
-                            return datum;
-                                })) + 
-                                `L${xScale(maxHr)},${height} L0,${height} Z`;
-                    });
-            });
-            
+                                return line(d.map(datum => {
+                                    datum.newhour = datum.hour + (periodHrs * (datum.plot - d3.min(d, datum => datum.plot)));
+                                    maxHr = d3.max(d, datum => datum.newhour);
+                                    return datum;
+                                }))+`L${xScale(maxHr)},${height} 
+                                L${xScale(0)},${height} Z`;
+
+                    })
+                    .attr("fill", 'rgba(1,1,1,0.6)');
+
+                    
+                });
+            })
 
             
 
@@ -175,11 +178,10 @@ function actigram(chartID) {
 
             svg.merge(svgEnter)
                 .on('mousedown', function(event) {
-                    var leftOff = event.offsetX > (width+2*margin.left) ? -170 : 10;
                     tooltip
                         .style("opacity", 1)
                         .style('position', 'absolute')
-                        .style('left', (event.offsetX + leftOff) + 'px')
+                        .style('left', (event.offsetX + 10) + 'px')
                         .style('top', (event.offsetY + 10) + 'px')
                         .style('background', 'rgba(255,255,255,0.8)')
                         .text(getTimeFromMouseEvent(event))
@@ -232,18 +234,16 @@ function actigram(chartID) {
         allDataSources[index] = source;
         return chart
     }
+    // these don't return chart as we aren't going to chain them. They are to set the data sources up only.
     chart.setDataSources = function(index, keyname, val){
         allDataSources[index][keyname] = val;
-        return chart
     }
     chart.addDataSource = function(_){
         allDataSources.push(_);
-        return chart
     }
     chart.removeDataSource = function(index){
         allDataSources.splice(index, 1);
         charts[charts.findIndex(c => c.chartID == chartID)].chart.putcontrols(putcontrols); 
-        return chart
     }
     getDataFromSource = function(source){
         var table = dataList.find(item => item.name === source.table).data;
@@ -327,7 +327,7 @@ function actigram(chartID) {
         //Get the hours from the start and the time for the actigram
         rawData.forEach((obj) => {
         //const tempDate = new Date(obj['date']);
-            const tempDate = new Date(Date.parse(obj['date']));
+            const tempDate = new Date(obj['date']);
             const timeDiffInMs = Math.abs(
                 tempDate.getTime() - minDateTime.getTime()
             );
@@ -352,7 +352,7 @@ function actigram(chartID) {
         }
 
         //Summary data for plotting
-        actiData.nPlots = d3.max(rawDataPlot)+1;   
+        actiData.nPlots = d3.max(rawDataPlot)+1;        
         actiData.max= actiData.reduce((max, obj) => {
             return obj.value > max ? obj.value : max;
             }, 0);
@@ -409,9 +409,7 @@ function actigram(chartID) {
 
         controlsDiv.appendChild(Object.assign(document.createElement('div'), { id: 'dataSources' }));
         //Set up the data sources that exist
-        allDataSources.forEach((s, i) => 
-                generateActiDataUI(document.getElementById('dataSources'), s.name, this.chartID(), i)
-        );
+        allDataSources.forEach((s, i) => generateActiDataUI(document.getElementById('dataSources'), s.name, this.chartID(), i));
 
         
         //Create more data sources
@@ -420,7 +418,7 @@ function actigram(chartID) {
         controlsDiv.appendChild(addDataButton);
         addDataButton.addEventListener('click', () => {
             tempName = "Dataset "+this.dataSources().length;
-            this.addDataSource({name: tempName, table: '', dates: '', values: '', colour: 'rgba(1,1,1,0.6)'})
+            this.addDataSource({name: tempName, table: '', dates: '', values: ''})
             generateActiDataUI(document.getElementById('dataSources'), tempName,  this.chartID(), allDataSources.length-1);
         })
 
@@ -432,14 +430,8 @@ function actigram(chartID) {
             const tablesSelected = document.querySelectorAll('[id^="table-dropdown"]')
             const datesSelected = document.querySelectorAll('[id^="dates-dropdown"]')
             const valuesSelected = document.querySelectorAll('[id^="values-dropdown"]')
-            const colourSelected = document.querySelectorAll('[id^="colour-select"]')
             tablesSelected.forEach( (t,i) => {
-                                    const tempSource = {    name: this.dataSources()[i].name, 
-                                                            table: tablesSelected[i].value, 
-                                                            dates: datesSelected[i].value, 
-                                                            values: valuesSelected[i].value,
-                                                            colour: colourSelected[i].value
-                                                        }
+                                    const tempSource = {name: this.dataSources()[i].name, table: t.value, dates: datesSelected[i].value, values: valuesSelected[i].value}
                                     this.dataSources(i, tempSource)
                             });
             this.update(this.dataSources())
@@ -490,7 +482,7 @@ function actigram(chartID) {
             elementPeriodHrs = parseFloat(PeriodHrsslider.value);
             this.periodHrs(elementPeriodHrs);
             //UPDATE THE DATA AND REDRAW HERE
-            this.update(this.dataSources())
+            this.update(this.getRawData())
 
         });
         // create a label for the input control
@@ -516,7 +508,7 @@ function actigram(chartID) {
         normaliseInput.addEventListener('change', () => {
             this.normalise(normaliseInput.checked);
             //UPDATE THE DATA AND REDRAW HERE
-            this.update(this.dataSources())
+            this.update(this.getRawData())
         });
 
         // create a label for the checkbox control

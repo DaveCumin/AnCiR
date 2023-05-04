@@ -7,6 +7,7 @@
     <script src="./dependencies/papaparse.min.js"></script>
     
     <script src="./globals.js"></script>
+    <script src="./UI/generateChartControls.js"></script>
     <script src="./Plots/actigram.js"></script>
     <script type="module" src="./Plots/chartHandler.js"></script>
     <script type="module" src="./Data/importData.js"></script>
@@ -37,18 +38,19 @@
             });
           }
 
-        var testActigram = actigram(0)
-                            .width(400)
-                            .height(20)
-                            .dataTabCols({table: 'Sample0', dates: 'date', values: 'value_0'})
-                            .lightTabCols({table: 'Sample0', dates: 'date', values: 'value_1'})
-                            .putcontrols("#controls");
-
         charts.push({
           chartID: 0,
           selection: "#thePlot"+0,
-          chart: testActigram,
+          chart: actigram(),
         });
+
+        var testActigram = actigram(0)
+                            .width(400)
+                            .height(20)
+                            .dataSources(0, {name:"main", table: 'Sample0', dates: 'date', values: 'value_0', colour:"rgba(1,1,1,0.6)"})
+                            .putcontrols("#controls");
+        testActigram.addDataSource({name: "second", table: 'Sample0', dates: 'date', values: 'value_1', colour: 'rgba(111,1,1,0.6)'})
+        charts[0].chart = testActigram
 
           
           d3.select(charts[ID].selection)
@@ -64,19 +66,19 @@
               value: dataPoint.value_1,
             });
           }
-
+          charts.push({
+          chartID: 1,
+          selection: "#thePlot"+1,
+          chart: actigram(),
+        });
         var testActigram = actigram(1)
                             .width(600)
                             .height(120)
-                            .dataTabCols({table: 'Sample0', dates: 'date', values: 'value_1'})
-                            .lightTabCols({table: 'Sample0', dates: 'date', values: 'value_1'})
+                            .dataSources(0, {name:"main", table: 'Sample0', dates: 'date', values: 'value_1', colour:"rgba(1,1,1,0.6)"})
                             .putcontrols("#controls");
 
-        charts.push({
-          chartID: 1,
-          selection: "#thePlot"+1,
-          chart: testActigram,
-        });
+        charts[1].chart = testActigram
+
 
           d3.select(charts[ID].selection)
             .datum(newData2)
@@ -93,21 +95,20 @@
               value: dataPoint.value_0,
             });
           }
-
+          
+        charts.push({
+          chartID: 2,
+          selection: "#thePlot"+2,
+          chart: actigram(),
+        });
         var testActigram2 = actigram(2)
                             .width(500)
                             .height(10)
-                            .dataTabCols({table: 'Sample1', dates: 'date', values: 'value_0'})
-                            .lightTabCols({table: 'Sample1', dates: 'date', values: 'value_1'})
+                            .dataSources(0, {name:"main", table: 'Sample1', dates: 'date', values: 'value_0', colour:"rgba(1,1,1,0.6)"})
                             .putcontrols("#controls");
 
-        charts.push({
-          chartID: 2,  
-          selection: "#thePlot"+2,
-          chart: testActigram2,
-        });
-
-          
+        charts[2].chart= testActigram2
+                  
           d3.select(charts[ID].selection)
             .datum(newData3)
             .call(charts[ID].chart);
@@ -141,7 +142,7 @@
             makeActigram(2);
         
             tabs.click("tab1")
-        }, 500);
+        }, 100);
 
     });
   </script>

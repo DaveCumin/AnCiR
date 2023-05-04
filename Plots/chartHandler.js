@@ -45,9 +45,6 @@ window.makePlot = function() {
 
 window.exportSVG = function(){
     const id = getCurrentPlotTab();
-    
-    console.log("exportID: " + id);
-    console.log(id);
 
     const svgString = document.getElementById("thePlot"+id).innerHTML;
     const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });

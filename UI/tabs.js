@@ -109,8 +109,11 @@ let datatabs = new w2tabs({
     tabs: [ ],
     onClick(event) {
         const fromindex = event.target.split("_")
-        showDataInTab(fromindex[1], fromindex[2])
-        grid.render("#dataContent");
+        if(fromindex[1] === "dataList"){
+          showDataInTab(fromindex[1], fromindex[2])
+        }else{
+          showDataInTab(fromindex[1], fromindex[2], fromindex[3], fromindex[4])
+        }
     },
     onClose(event){
         if(datatabs.tabs.length === 1){
@@ -120,7 +123,7 @@ let datatabs = new w2tabs({
     },
   });
   
-  window.adddataTab = function (from, index) {
+  window.adddataTab = function (from, index, chartDataIndex, chartDataName) {
     index = charts.findIndex(c => c.chartID === index)
     //add the export button if first tab
     if(datatabs.tabs.length === 0){
@@ -129,84 +132,62 @@ let datatabs = new w2tabs({
     }
 
     //now deal with the new tab
-    if(typeof datatabs.click("datatab_" + from + "_" + index) !== 'undefined'){ //if it already exists in the tabs do noting
+    if( datatabs.tabs.filter(d =>  d.id ===  "datatab_" + from + "_" + index + "_" + chartDataIndex + "_" + chartDataName).length == 0 ){ //if it already exists in the tabs do noting
         const ind = datatabs.tabs.length + 1;
         if(from === 'dataList'){
-            datatabs.add({ id: "datatab_" + from + "_" + index, text: dataList[index].name, closable: true });
+            datatabs.add({ id: "datatab_" + from + "_" + index+ "_" + chartDataIndex + "_" + chartDataName, text: dataList[index].name, closable: true });
         }
         if(from === 'chartList'){
-            datatabs.add({ id: "datatab_" + from + "_" + index, text: "data1:"+tabs.tabs[index].text, closable: true });
+            datatabs.add({ id: "datatab_" + from + "_" + index + "_" + chartDataIndex + "_" + chartDataName, text: "Plot "+chartDataIndex+": "+chartDataName, closable: true });
         }
-        if(from === 'chartListlight'){
-          datatabs.add({ id: "datatab_" + from + "_" + index, text: "data2:"+tabs.tabs[index].text, closable: true });
-        }
-        showDataInTab(from, index);
+        showDataInTab(from, index, chartDataIndex);
         datatabs.refresh();
-        datatabs.click("datatab_" + from + "_" + index);
-        
     }
+    datatabs.click("datatab_" + from + "_" + index+ "_" + chartDataIndex + "_" + chartDataName);  
+
     
   };
   
 
   // create the table for the data and display it
-  window.showDataInTab = function(from, index){
-    var columnNames;
+  window.showDataInTab = function(from, index, chartDataIndex){
+    var columnNames= [];
+    var tableData = [];
+    var maxsize = 250+"px";
+    var keys;
+    var data;
 
     if(from === 'dataList'){
         //get the keys for headers
-        const keys = Object.keys(dataList[index].data[0]).filter(k => k!='recid');
-        var maxsize = 100+"px"
-            
-        columnNames = keys.map(key => ({
-            field: key,
-            text: key,
-            size: maxsize
-        }));
-        //add recid for the table w2grid
-        var tableData = dataList[index].data
-        for(let i=0; i<tableData.length; i++){
-            tableData[i].recid = i+1;
-        }
+        data = dataList[index].data;
+        keys = Object.keys(dataList[index].data[0]).filter(k => k!='recid');
     }
     if(from === 'chartList'){
         //get the keys for headers
-        const keys = Object.keys(charts[index].chart.chartData()[0]).filter(k => k!='recid');
-        var maxsize = 100+"px"
+        data = charts[index].chart.plottingData()[chartDataIndex];
+        keys = Object.keys(data[0]).filter(k => k!='recid');
+    } 
             
-        columnNames = keys.map(key => ({
-            field: key,
-            text: key,
-            size: maxsize
-        }));
-        //add recid for the table w2grid
-        var tableData = charts[index].chart.chartData()
-        for(let i=0; i<tableData.length; i++){
-            tableData[i].recid = i+1;
-        }
-    }
-    if(from === 'chartListlight'){
-      //get the keys for headers
-      const keys = Object.keys(charts[index].chart.lightData()[0]).filter(k => k!='recid');
-      var maxsize = 100+"px"
-          
-      columnNames = keys.map(key => ({
-          field: key,
-          text: key,
-          size: maxsize
-      }));
-      //add recid for the table w2grid
-      var tableData = charts[index].chart.lightData()
+    columnNames = keys.map(key => ({
+      field: key,
+      text: key,
+      size: maxsize
+    }));
+    
+    tableData = data;
+    //add recid for the table w2grid
+    if(!Object.keys(data[0]).includes('recid')){
       for(let i=0; i<tableData.length; i++){
           tableData[i].recid = i+1;
       }
-  }
-    
+    }
+     
     grid.columns = columnNames;
     grid.records = tableData;
     grid.render("#dataContent");
     
   }
+
 
 
   window.datatabs = datatabs;

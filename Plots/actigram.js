@@ -1,7 +1,7 @@
 function actigram(chartID) {
 
     if (!arguments.length) chartID = -1;
-    var margin = { top: 5, right: 10, bottom: 50, left: 60, between: 5 },
+    var margin = { top: 5, right: 30, bottom: 50, left: 60, between: 5 },
         width = 400,
         height = 10,
         periodHrs = 24,
@@ -16,27 +16,20 @@ function actigram(chartID) {
         
         
         selection.each(function (data) {
+            plottingData =[]
+            allDataSources.forEach( (s,i) => {
+                tempData = getDataFromSource(s) //get the data               
+                //if it's the first one, then set the start time to the first data, 0hrs
+                if(i===0){
+                    startTime = new Date(Date.parse(tempData[0].date));
+                    startTime = new Date(startTime);
+                    startTime.setHours(0,0,0); 
+                }
 
-            //extract the data from sources if called from d3 with 'data'
-            if(typeof data !== 'undefined'){
-                plottingData =[]
-                allDataSources.forEach( (s,i) => {
-                    tempData = getDataFromSource(s) //get the data
-                         
-                    //if it's the first one, then set the start time to the first data, 0hrs
-                    if(i===0){
-                        startTime = new Date(Date.parse(tempData[0].date));
-                        startTime = new Date(startTime);
-                        startTime.setHours(0,0,0); 
-                    }
-
-                    tempData = makeActiData(tempData, periodHrs) //convert the data for use in actiplot
-                    plottingData.push(tempData) //add the data to plotting so it doesn't need to be remade
-                })
+                tempData = makeActiData(tempData, periodHrs) //convert the data for use in actiplot
+                plottingData.push(tempData) //add the data to plotting so it doesn't need to be remade
+            })
                 
-            }
-
-
             //clear for redraw
             d3.select(this).selectAll("svg").remove();
 
@@ -79,63 +72,90 @@ function actigram(chartID) {
             var nYTicks = Math.round(height / 20)
             if(nYTicks < 2){nYTicks = 2}
 
-            // Do the magic for each of the plots
-            plots.each(function(d, i) {
-                const plotContainer = d3.select(this);
-                
-                // Create y scale for the current plot based on its maximum value, or a function for the normalised version
-                const maxVals = plottingData.map(pd => d3.max(pd.filter(datum => datum.plot === i || datum.plot === (i+1)), datum => datum.value));
-                const maxVal = d3.max(maxVals);
-                
             
-                var yScale;
-                if(normalise){
-                    yScale = d3.scaleLinear()
-                        .domain([0, maxVal])
-                        .range([height, 0]);
-                }else{
-                    yScale = d3.scaleLinear()
-                        .domain([0, maxVal])
-                        .range([height, 0]);
-                }
-            
-                // Append y axis to the current plot
-                //if(i===0){
-                    plotContainer.append("g")
-                        .call(d3.axisLeft(yScale).ticks(nYTicks));
- /*               }else{
-                    const axisOffset = i * 30; // calculate the offset for the x-axis
-                    plotContainer.append("g")
-                        .attr("transform", `translate(${axisOffset},10)`)
-                        .call(d3.axisRight(yScale).ticks(nYTicks));
-                }
-*/
-                // Create line generator for the current plot
-                const line = d3.line()
+
+            // Create y scale for the current plot based on its maximum value, or a function for the normalised version
+            const maxVals = plottingData.map((pd,i) => d3.max(pd.filter(datum => datum.plot === i || datum.plot === (i+1)), datum => datum.value));
+            const maxVal = d3.max(maxVals);
+
+
+            const line = d3.line()
                     .x(datum => xScale(datum.newhour))
                     .y(datum => yScale(datum.value))
-                    .curve(d3.curveStepBefore);
-            
-                const paths = plotContainer.selectAll(".path")
-                    .data(plottingData) //do for each of the data entered
-                    .join("path")
-                    .attr("class", "path")
-                    .attr("fill", (d,i) => allDataSources[i].colour)
-                    .attr("d", d => {
-                        const plotData = d.filter(datum => datum.plot === i || datum.plot === (i+1));
-                        var maxHr;
-                        return line(plotData.map(datum => {
-                            datum.newhour = datum.hour + (periodHrs * (datum.plot - d3.min(plotData, datum => datum.plot)));
-                            maxHr = d3.max(plotData, datum => datum.newhour);
-                            return datum;
-                                })) + 
-                                `L${xScale(maxHr)},${height} L0,${height} Z`;
-                    });
-            });
-            
+                    .curve(d3.curveStepAfter);
 
-            
 
+            for(let pd=0; pd<plottingData.length; pd++){
+                //get the data to plot
+                const plotsData = plottingData[pd]
+
+                // for each plot
+                for(let pl=0; pl<plotsData.nPlots; pl++){
+                    //get the data for the plot
+                    var plotData = plotsData.filter(d => d.plot===pl || d.plot === pl+1)
+                    plotData = plotData.map(d => ({...d,
+                        newhour: d.hour + (d.plot - pl) * periodHrs
+                    }));
+
+
+                    var yScale;
+                    if(normalise){
+                        const plotMax = d3.max(plotData, d => d.value);
+                
+                        yScale = d3.scaleLinear()
+                            .domain([0, plotMax])
+                            .range([height, 0]);
+                    }else{
+                        yScale = d3.scaleLinear()
+                            .domain([0, maxVals[pd]])
+                            .range([height, 0]);
+                    }
+
+                      
+                      
+                    //work the magic
+                    g.selectAll(".acti"+pd+pl)
+                        .data([plotData]) //do once
+                        .enter()
+                        .append("g")
+                        .attr("class", "acti"+pd+pl)
+                        .attr(
+                            "transform",
+                            (d, i) =>
+                                `translate(${margin.left}, ${pl * height + (pl + 1) * margin.between})`
+                            )            
+                        .append("path")
+                        //.datum(d => d[1])
+                        .attr("d", d => `${line(d)} 
+                                            L${xScale(d.reduce((max, obj) => {
+                                                return obj.newhour > max ? obj.newhour : max;
+                                                }, 0))},
+                                            ${height} 
+                                            L${xScale(d.reduce((min, obj) => {
+                                                return obj.newhour < min ? obj.newhour : min;
+                                                }, width))},
+                                            ${height} Z`) // add line to end point and close path
+                        .attr("stroke", "none")
+                        .attr("fill", allDataSources[pd].colour);
+
+                    //add the y-axis
+                    if(pd===0){
+                        const yAxis = d3.axisLeft(yScale).ticks(nYTicks);
+                        g.selectAll(".acti"+pd+pl)
+                            .append("g").call(yAxis);
+                    }else{
+                        const yAxis = d3.axisRight(yScale).ticks(nYTicks);
+                        g.selectAll(".acti"+pd+pl)
+                            .append("g").call(yAxis)
+                            .attr("transform", `translate(${(width*2) + (pd-1)*30},0)`)
+                            .style("stroke", allDataSources[pd].colour);
+                    }
+                    
+                }
+            }
+
+
+  
             // Add the x axis to the bottom plot
             const xaxisScale = d3.scaleLinear()
                 .domain([0, periodHrs*2])
@@ -151,13 +171,12 @@ function actigram(chartID) {
             
 
             /// Add in the start time to the left of each plot
-            var start = new Date(startTime);
             g.selectAll(".acti")
                 .append("text")
                 .attr("y", (d,i) => (height/2) + margin.between )
                 .attr("x", 0-(margin.left*2))
-                .text((d,i) => {    const ylab = new Date;
-                                    ylab.setTime(start.getTime() + i*periodHrs*3600000);
+                .text((d,i) => {    const ylab = new Date();
+                                    ylab.setTime(startTime.getTime() + i*periodHrs*3600000);
                                     if(periodHrs >=24){
                                         return ylab.toLocaleString('en-US',{year: 'numeric', month: 'short', day: '2-digit'})
                                     }else{
@@ -175,26 +194,32 @@ function actigram(chartID) {
 
             svg.merge(svgEnter)
                 .on('mousedown', function(event) {
-                    var leftOff = event.offsetX > (width+2*margin.left) ? -170 : 10;
-                    tooltip
-                        .style("opacity", 1)
-                        .style('position', 'absolute')
-                        .style('left', (event.offsetX + leftOff) + 'px')
-                        .style('top', (event.offsetY + 10) + 'px')
-                        .style('background', 'rgba(255,255,255,0.8)')
-                        .text(getTimeFromMouseEvent(event))
-                        .style("visibility", "visible");
-
+                    if(event.offsetX > margin.left*2 && event.offsetX < 2*(width+margin.left) &&
+                        event.offsetY > margin.top && event.offsetY < margin.top + plottingData[0].nPlots*(height + margin.between) ){
+                        var leftOff = event.offsetX > (width+2*margin.left) ? -170 : 10;
+                        tooltip
+                            .style("opacity", 1)
+                            .style('position', 'absolute')
+                            .style('left', (event.offsetX + leftOff) + 'px')
+                            .style('top', (event.offsetY + 10) + 'px')
+                            .style('background', 'rgba(255,255,255,0.8)')
+                            .text(getTimeFromMouseEvent(event))
+                            .style("visibility", "visible");
+                    }
                 })
                 .on("mouseup", function(){return tooltip.style("visibility", "hidden");});
                 
 
             svg.merge(svgEnter).on("dblclick", function(event){
-                sendMessage("Clicked at " + getTimeFromMouseEvent(event))
+                if(event.offsetX > margin.left*2 && event.offsetX < 2*(width+margin.left) &&
+                        event.offsetY > margin.top && event.offsetY < margin.top + plottingData[0].nPlots*(height + margin.between) ){
+                            sendMessage("Clicked at " + getTimeFromMouseEvent(event))
+                        }
             });
             
             //put the controls where they need to go, if there is somewhere to put them
             if(putcontrols != "") chart.controls();
+
         });
         
         chart.update = function(newData) {
@@ -319,17 +344,13 @@ function actigram(chartID) {
  // internal code for reformatting data of the form {date: ..., value: ...} for plotting
     makeActiData = function(rawData, periodHrs){
 //TODO - date formatting, and make this starttime
-        
-        var minDateTime = d3.min(rawData, d => new Date(Date.parse(d['date'])));
-        minDateTime = new Date(minDateTime);
-        minDateTime.setHours(0,0,0);
-
+   
         //Get the hours from the start and the time for the actigram
         rawData.forEach((obj) => {
         //const tempDate = new Date(obj['date']);
             const tempDate = new Date(Date.parse(obj['date']));
             const timeDiffInMs = Math.abs(
-                tempDate.getTime() - minDateTime.getTime()
+                tempDate.getTime() - startTime.getTime()
             );
             const timeDiffInHours = timeDiffInMs / (1000 * 60 * 60);
             obj.HrsFromStart = timeDiffInHours;
@@ -356,7 +377,6 @@ function actigram(chartID) {
         actiData.max= actiData.reduce((max, obj) => {
             return obj.value > max ? obj.value : max;
             }, 0);
-
 
         return actiData;    
     }
@@ -457,12 +477,12 @@ function actigram(chartID) {
         controlsDiv.appendChild(datalistdataheading);
         controlsDiv.appendChild(chartDataDiv)
 
-        document.getElementById('chartData').innerHTML = `<ul>
-                                                                <li><a href='javascript:adddataTab("chartList",${this.chartID()});'>
-                                                                    data1: Plot ${this.chartID()+1}</a></li>
-                                                                <li><a href='javascript:adddataTab("chartListlight",${this.chartID()});'>
-                                                                    data2: Plot ${this.chartID()+1}</a></li>
-                                                            </ul>`
+        document.getElementById('chartData').innerHTML = '<ul>';
+        allDataSources.forEach( (ds,i) => {
+            document.getElementById('chartData').innerHTML += `<li><a href='javascript:adddataTab("chartList",${this.chartID()}, ${i} ,"${ds.name}");'>
+                                                                        ${ds.name}</a></li>`
+        })
+        document.getElementById('chartData').innerHTML += '</ul>'
     //line separating the data from the controls
     controlsDiv.appendChild(document.createElement('hr'));
 

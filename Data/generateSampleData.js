@@ -1,7 +1,8 @@
 function generateData(  Ndays   = 7, //number of days to produce
                         fs_min  = 5,  //sampling rate in minutes
-                        start   = "01/01/2023 10:35", //start date/time
-                        period  = [25,22.5] //period of the circadian rhythm
+                        start   = "10/01/2023 10:35", //start date/time
+                        period  = [25, 22.5], //period of the circadian rhythm
+                        maxheight = [200, 100] // the maximum height of the data
                        ){
 
     const sampleN = 24 * (60/fs_min) * Ndays; //N days of data with 288 points on each day
@@ -23,9 +24,9 @@ function generateData(  Ndays   = 7, //number of days to produce
     }
     period.forEach( (p,pindex) => {
         for (let i = 0; i < sampleN; i++) {
-          var mult = 200;
+          var mult = maxheight[pindex];
           if (i % ((60 / fs_min) * p) < 144) {
-            mult = 8;
+            mult = maxheight[pindex]*0.05;
           }
           const valueKey = `value_${pindex}`;
           sampledata[i][valueKey] = Math.random() * mult

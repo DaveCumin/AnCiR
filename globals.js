@@ -1,6 +1,4 @@
 //GLOBALS
-const version = '2.1.09';
-
 var dblctime = Date.now(); // used for deciphering double-clicks 
 
 var dataList = []; // indexed data

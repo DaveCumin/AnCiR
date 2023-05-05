@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>AnCiR</title>
     <link rel="stylesheet" type="text/css" href="./dependencies/w2ui-2.0.min.css" />
     <script src="./dependencies/d3v7.8.2.min.js"></script>
     <script src="./dependencies/papaparse.min.js"></script>
@@ -19,10 +18,26 @@
     <script src="./UI/sidebar_data.js"></script>
     <script src="./UI/messages.js"></script>
     <script src="./Data/generateSampleData.js"></script>
+
+    <title>AnCiR (v)</title>
+    
+    <style>
+      .w2ui-tab.active {
+        background-color: #fcfcfc !important;
+        border-bottom: 2px solid transparent !important;
+      }
+    </style>
   </head>
   <body style="background: black">
     <div id="layout" style="width: 100%; height: calc(100vh - 16px)"></div>
   </body>
+
+  <script>
+    const version = '0.3.01';
+    document.title = `AnCiR (v ${version})`;
+  </script>
+
+
   <script>
 
 //TESTING

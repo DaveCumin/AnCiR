@@ -147,7 +147,7 @@ function actigram(chartID) {
                         const yAxis = d3.axisRight(yScale).ticks(nYTicks);
                         g.selectAll(".acti"+pd+pl)
                             .append("g").call(yAxis)
-                            .attr("transform", `translate(${(width*2) + (pd-1)*30},0)`)
+                            .attr("transform", `translate(${(width*2) + (pd-1)*40},0)`)
                             .style("stroke", allDataSources[pd].colour);
                     }
                     

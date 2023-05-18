@@ -4,7 +4,7 @@ function updateSidebarData(){
     let listItems = "";
     for (let i = 0; i < dataList.length; i++) {
         listItems +=
-        `<li><a href='javascript:adddataTab("dataList",${i})'>` +
+        `<li><a href='javascript:adddataTab("dataList",${i},0,0)'>` +
         dataList[i].name +
         "</a></li>";
     }

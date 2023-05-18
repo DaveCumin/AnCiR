@@ -45,32 +45,23 @@ function makeNewActigram(){
 
     const ID = addTab()
 
-    var d = dataList[0].data;
-    const newData3 = [];
-          for (const dataPoint of d) {
-            newData3.push({
-              date: dataPoint.date,
-              value: dataPoint.value_0,
-            });
-          }
+    charts.push({
+        chartID: (ID-1),
+        selection: "#thePlot"+(ID-1),
+        chart: actigram(),
+    });
 
     var testActigram2 = actigram(ID-1)
                         .width(400)
                         .height(15)
-                        .dataTabCols({table: 'Sample1', dates: 'date', values: 'value_0'})
-                        .lightTabCols({table: 'Sample1', dates: 'date', values: 'value_1'})
+                        .dataSources(0, {name:"main", table: 'Sample0', dates: 'date', values: 'value_0', colour:"rgba(1,1,1,0.6)"})
                         .putcontrols("#controls");
 
-    charts.push({
-        chartID: (ID-1),
-        selection: "#thePlot"+(ID-1),
-        chart: testActigram2,
-    });
+    charts[ID-1].chart = testActigram2
 
-    const gotolast = charts.length -1
-    d3.select(charts[gotolast].selection)
-        .datum(newData3)
-        .call(charts[gotolast].chart);
+
+    d3.select(charts[ID-1].selection)
+        .call(charts[ID-1].chart);
 
     setTimeout(function() {
         tabs.click("tab"+(ID))

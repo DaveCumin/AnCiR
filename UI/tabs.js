@@ -124,7 +124,7 @@ let datatabs = new w2tabs({
   });
   
   window.adddataTab = function (from, index, chartDataIndex, chartDataName) {
-    index = charts.findIndex(c => c.chartID === index)
+    
     //add the export button if first tab
     if(datatabs.tabs.length === 0){
         document.getElementById("exportdatabutton").innerHTML = `   <button onclick="exportDataCSV()">EXPORT as csv</button>
@@ -138,6 +138,7 @@ let datatabs = new w2tabs({
             datatabs.add({ id: "datatab_" + from + "_" + index+ "_" + chartDataIndex + "_" + chartDataName, text: dataList[index].name, closable: true });
         }
         if(from === 'chartList'){
+            index = charts.findIndex(c => c.chartID === index)
             datatabs.add({ id: "datatab_" + from + "_" + index + "_" + chartDataIndex + "_" + chartDataName, text: "Plot "+chartDataIndex+": "+chartDataName, closable: true });
         }
         showDataInTab(from, index, chartDataIndex);

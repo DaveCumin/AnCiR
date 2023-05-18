@@ -1,15 +1,21 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" type="text/css" href="./dependencies/w2ui-2.0.min.css" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="./dependencies/w2ui-2.0.min.css"
+    />
+    <link rel="stylesheet" type="text/css" href="./UI/style.css" />
     <script src="./dependencies/d3v7.8.2.min.js"></script>
     <script src="./dependencies/papaparse.min.js"></script>
-    
+
     <script src="./globals.js"></script>
     <script src="./UI/generateChartControls.js"></script>
     <script src="./Plots/actigram.js"></script>
     <script type="module" src="./Plots/chartHandler.js"></script>
     <script type="module" src="./Data/importData.js"></script>
+    <script type="module" src="./Data/processDataHandler.js"></script>
 
     <script type="module" src="./UI/mainLayout.js"></script>
     <script type="module" src="./UI/toolbar.js"></script>
@@ -17,10 +23,12 @@
 
     <script src="./UI/sidebar_data.js"></script>
     <script src="./UI/messages.js"></script>
-    <script src="./Data/generateSampleData.js"></script>
 
-    <title>AnCiR (v)</title>
-    
+    <script src="./Data/generateSampleData.js"></script>
+    <script src="./Data/subset.js"></script>
+
+    <title>AnCiR (v _)</title>
+
     <style>
       .w2ui-tab.active {
         background-color: #fcfcfc !important;
@@ -30,20 +38,17 @@
   </head>
   <body style="background: black">
     <div id="layout" style="width: 100%; height: calc(100vh - 16px)"></div>
-  </body>
 
-  <script>
-    const version = '0.3.01';
-    document.title = `AnCiR (v ${version})`;
-  </script>
+    <script>
+      const AnCiR_version = "0.3.13";
+      document.title = `AnCiR (v ${AnCiR_version})`;
+    </script>
 
-
-  <script>
-
-//TESTING
-    function makeActigram(ID) {
+    <script>
+      //TESTING
+      function makeActigram(ID) {
         var d = dataList[0].data;
-        
+
         if (ID == 0) {
           const newData1 = [];
           for (const dataPoint of d) {
@@ -53,21 +58,32 @@
             });
           }
 
-        charts.push({
-          chartID: 0,
-          selection: "#thePlot"+0,
-          chart: actigram(),
-        });
+          charts.push({
+            chartID: 0,
+            selection: "#thePlot" + 0,
+            chart: actigram(),
+          });
 
-        var testActigram = actigram(0)
-                            .width(400)
-                            .height(20)
-                            .dataSources(0, {name:"main", table: 'Sample0', dates: 'date', values: 'value_0', colour:"rgba(1,1,1,0.6)"})
-                            .putcontrols("#controls");
-        testActigram.addDataSource({name: "second", table: 'Sample0', dates: 'date', values: 'value_1', colour: 'rgba(111,1,1,0.6)'})
-        charts[0].chart = testActigram
+          var testActigram = actigram(0)
+            .width(400)
+            .height(20)
+            .dataSources(0, {
+              name: "main",
+              table: "Sample0",
+              dates: "date",
+              values: "value_0",
+              colour: "rgba(1,1,1,0.6)",
+            })
+            .putcontrols("#controls");
+          testActigram.addDataSource({
+            name: "second",
+            table: "Sample0",
+            dates: "date",
+            values: "value_1",
+            colour: "rgba(111,1,1,0.6)",
+          });
+          charts[0].chart = testActigram;
 
-          
           d3.select(charts[ID].selection)
             .datum(newData1)
             .call(charts[ID].chart);
@@ -82,24 +98,28 @@
             });
           }
           charts.push({
-          chartID: 1,
-          selection: "#thePlot"+1,
-          chart: actigram(),
-        });
-        var testActigram = actigram(1)
-                            .width(600)
-                            .height(120)
-                            .dataSources(0, {name:"main", table: 'Sample0', dates: 'date', values: 'value_1', colour:"rgba(1,1,1,0.6)"})
-                            .putcontrols("#controls");
+            chartID: 1,
+            selection: "#thePlot" + 1,
+            chart: actigram(),
+          });
+          var testActigram = actigram(1)
+            .width(600)
+            .height(120)
+            .dataSources(0, {
+              name: "main",
+              table: "Sample0",
+              dates: "date",
+              values: "value_1",
+              colour: "rgba(1,1,1,0.6)",
+            })
+            .putcontrols("#controls");
 
-        charts[1].chart = testActigram
-
+          charts[1].chart = testActigram;
 
           d3.select(charts[ID].selection)
             .datum(newData2)
             .call(charts[ID].chart);
         }
-
 
         d = dataList[1].data;
         if (ID == 2) {
@@ -110,55 +130,60 @@
               value: dataPoint.value_0,
             });
           }
-          
-        charts.push({
-          chartID: 2,
-          selection: "#thePlot"+2,
-          chart: actigram(),
-        });
-        var testActigram2 = actigram(2)
-                            .width(500)
-                            .height(10)
-                            .dataSources(0, {name:"main", table: 'Sample1', dates: 'date', values: 'value_0', colour:"rgba(1,1,1,0.6)"})
-                            .putcontrols("#controls");
 
-        charts[2].chart= testActigram2
-                  
+          charts.push({
+            chartID: 2,
+            selection: "#thePlot" + 2,
+            chart: actigram(),
+          });
+          var testActigram2 = actigram(2)
+            .width(500)
+            .height(10)
+            .dataSources(0, {
+              name: "main",
+              table: "Sample1",
+              dates: "date",
+              values: "value_0",
+              colour: "rgba(1,1,1,0.6)",
+            })
+            .putcontrols("#controls");
+
+          charts[2].chart = testActigram2;
+
           d3.select(charts[ID].selection)
             .datum(newData3)
             .call(charts[ID].chart);
         }
       }
 
-
-
-       // Generate some sample data to start with and make actigram
-    document.addEventListener("DOMContentLoaded", function () {
+      // Generate some sample data to start with and make actigram
+      document.addEventListener("DOMContentLoaded", function () {
         //Add the tabs
-        setTimeout(function() {
-            tabs.render("#tabs");
-            tabs.refresh();
-            
-            datatabs.render("#datatabs");
-            datatabs.refresh();
+        setTimeout(function () {
+          tabs.render("#tabs");
+          tabs.refresh();
+
+          datatabs.render("#datatabs");
+          datatabs.refresh();
         }, 100);
 
-
         //Create test data to start with
-        setTimeout(function() {
-            generateData(); //sample data to start
-            generateData(); // more sample data
-            
-            addTab()
-            makeActigram(0);
+        setTimeout(function () {
+          generateData(); //sample data to start
+          generateData(); // more sample data
+
+          addTab();
+          makeActigram(0);
+          /*
             addTab()
             makeActigram(1);
             addTab()
             makeActigram(2);
-        
-            tabs.click("tab1")
-        }, 100);
+        */
 
-    });
-  </script>
+          tabs.click("tab1");
+        }, 100);
+      });
+    </script>
+  </body>
 </html>

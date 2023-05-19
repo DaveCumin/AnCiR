@@ -165,10 +165,8 @@ function generateActiDataUI(controlsDiv, headingText, chartid, dataI) {
   processData.innerHTML = `<div class="menu-icon process" id="process_${chartid}_${dataI}"> <a href="javascript:charts[charts.findIndex(c => c.chartID === ${chartid})].chart.addProcessData(${dataI})"><span class="w2ui-icon w2ui-icon-drop processDataIcon"></span></a></div>`;
   dataDiv.appendChild(processData);
 
-  //TODO: add in the existing processes
-
+  //ADD IN EXISITNG PROCESSES
   const processes = charts[chartid].chart.dataSources()[dataI].process;
-  console.log(chartid + ", " + dataI + ", " + processes.length);
   if (processes.length > 0) {
     processes.forEach((p) => {
       parameters = Object.values(p).filter((key) => key !== p.name);

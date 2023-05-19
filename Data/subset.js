@@ -76,5 +76,10 @@ function subset_update(selectorProcess) {
 }
 
 function deleteProcess(element) {
-  console.log("delete process for " + element.id);
+  element = element.id;
+  element = element.split("_");
+  charts[element[2]].chart
+    .dataSources()
+    [element[3]].process.splice(element[3], 1);
+  charts[element[4]].chart.update();
 }

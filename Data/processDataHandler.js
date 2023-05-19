@@ -14,8 +14,6 @@ window.procesContextMenu = function (selection) {
     hideOn: ["doc-click", "select"],
     anchor: query("#" + selection)[0],
     onSelect(event) {
-      console.log("anchorID: ", event.owner.anchor.id);
-      console.log("selectedAction: ", event.detail.item.id);
       window[event.detail.item.id + "_controls"](event.owner.anchor.id);
     },
   });

@@ -24,6 +24,20 @@ function actigram(chartID) {
       plottingData = [];
       allDataSources.forEach((s, i) => {
         tempData = getDataFromSource(s); //get the data
+
+        //DO PREPROCESSING
+        if (allDataSources[i].process.length > 0) {
+          for (let j = 0; j < allDataSources[i].process.length; j++) {
+            parameters = Object.values(allDataSources[i].process[j]).filter(
+              (key) => key !== allDataSources[i].process[j].name
+            );
+            tempData = window[allDataSources[i].process[j].name](
+              tempData,
+              ...parameters
+            );
+          }
+        }
+
         //if it's the first one, then set the start time to the first data, 0hrs
         if (i === 0) {
           startTime = new Date(Date.parse(tempData[0].date));
@@ -673,12 +687,15 @@ function actigram(chartID) {
       );
       const colourSelected = document.querySelectorAll('[id^="colour-select"]');
       tablesSelected.forEach((t, i) => {
+        var processes = this.dataSources()[i].process;
+
         const tempSource = {
           name: this.dataSources()[i].name,
           table: tablesSelected[i].value,
           dates: datesSelected[i].value,
           values: valuesSelected[i].value,
           colour: colourSelected[i].value,
+          process: processes,
         };
         this.dataSources(i, tempSource);
       });

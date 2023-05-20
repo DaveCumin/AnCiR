@@ -24,12 +24,19 @@ subset_controls = function (selector, ...parameters) {
 
   //look up the number of processes to give a number //TODO: reordering (drag?)
   const selectorIndicies = selector.split("_");
-  const processN =
-    charts[selectorIndicies[1]].chart.dataSources()[selectorIndicies[2]].process
-      .length;
-  charts[selectorIndicies[1]].chart.dataSources()[selectorIndicies[2]].process[
-    processN
-  ] = { name: "subset", minTime: "", maxTime: "" };
+
+  var processN;
+  if (parameters.length == 0) {
+    //Add one if no parameters
+    processN =
+      charts[selectorIndicies[1]].chart.dataSources()[selectorIndicies[2]]
+        .process.length;
+    charts[selectorIndicies[1]].chart.dataSources()[
+      selectorIndicies[2]
+    ].process[processN] = { name: "subset", minTime: "", maxTime: "" };
+  } else {
+    processN = parameters[0];
+  }
   // Create a new DOM element to be inserted
   const subsetControls = document.createElement("div");
   subsetControls.innerHTML = `<a>Subset</a>
@@ -47,10 +54,13 @@ subset_controls = function (selector, ...parameters) {
   //Update the values
   if (parameters.length > 0) {
     document.getElementById(`subset_min_${selector}_${processN}`).value =
-      parameters[0];
-    document.getElementById(`subset_max_${selector}_${processN}`).value =
       parameters[1];
+    document.getElementById(`subset_max_${selector}_${processN}`).value =
+      parameters[2];
   }
+
+  //set the min and max values
+  setMinMaxSubset(`${selector}_${processN}`);
 };
 
 function subsetToggle(element) {
@@ -73,6 +83,31 @@ function subset_update(selectorProcess) {
     minTime: document.getElementById(`subset_min_${selectorProcess}`).value,
     maxTime: document.getElementById(`subset_max_${selectorProcess}`).value,
   };
+
+  // now set the min and max values
+  setMinMaxSubset(selectorProcess);
+}
+
+function setMinMaxSubset(selectorProcess) {
+  const currentMin = document.getElementById(
+    `subset_min_${selectorProcess}`
+  ).value;
+  const currentMax = document.getElementById(
+    `subset_max_${selectorProcess}`
+  ).value;
+  var chartMin = charts[selectorProcess.split("_")[1]].chart.startTime(); //TODO: get the min and max datetimes from the data
+  chartMin = toISOLocal(chartMin);
+
+  if (currentMin == "") {
+    // if there is no value selected
+    document.getElementById(`subset_min_${selectorProcess}`).value = chartMin;
+    document.getElementById(`subset_min_${selectorProcess}`).min = chartMin;
+    document.getElementById(`subset_max_${selectorProcess}`).min = chartMin;
+  } else {
+    document.getElementById(`subset_max_${selectorProcess}`).min = currentMin;
+  }
+
+  //TODO: limit the max time also
 }
 
 function deleteProcess(element) {
@@ -82,4 +117,33 @@ function deleteProcess(element) {
     .dataSources()
     [element[3]].process.splice(element[3], 1);
   charts[element[4]].chart.update();
+}
+
+//thanks to https://stackoverflow.com/a/49332027/1505631 for this function
+function toISOLocal(d) {
+  var z = (n) => ("0" + n).slice(-2);
+  var zz = (n) => ("00" + n).slice(-3);
+  var off = d.getTimezoneOffset();
+  var sign = off > 0 ? "-" : "+";
+  off = Math.abs(off);
+
+  return (
+    d.getFullYear() +
+    "-" +
+    z(d.getMonth() + 1) +
+    "-" +
+    z(d.getDate()) +
+    "T" +
+    z(d.getHours()) +
+    ":" +
+    z(d.getMinutes()) +
+    ":" +
+    z(d.getSeconds()) +
+    "." +
+    zz(d.getMilliseconds()) /* +
+    sign +
+    z((off / 60) | 0) +
+    ":" +
+    z(off % 60)*/
+  );
 }

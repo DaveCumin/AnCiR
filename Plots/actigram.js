@@ -26,6 +26,7 @@ function actigram(chartID) {
         tempData = getDataFromSource(s); //get the data
 
         //DO PREPROCESSING
+        //TODO: deal with missing/erronious data in the preprocessing steps (if there are any). Suggest skip step and write error to messages, highlight the div in question
         if (allDataSources[i].process.length > 0) {
           for (let j = 0; j < allDataSources[i].process.length; j++) {
             parameters = Object.values(allDataSources[i].process[j]).filter(

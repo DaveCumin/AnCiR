@@ -168,9 +168,9 @@ function generateActiDataUI(controlsDiv, headingText, chartid, dataI) {
   //ADD IN EXISITNG PROCESSES
   const processes = charts[chartid].chart.dataSources()[dataI].process;
   if (processes.length > 0) {
-    processes.forEach((p) => {
+    processes.forEach((p, i) => {
       parameters = Object.values(p).filter((key) => key !== p.name);
-
+      parameters.unshift(i);
       window[p.name + "_controls"](
         `process_${chartid}_${dataI}`,
         ...parameters

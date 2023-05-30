@@ -17,14 +17,18 @@
     display: block;
 }
 
+.menu-icon{
+    display: inline;
+}
 .deleteDataCross{
     background-repeat: no-repeat;
-    height: 16px;
+    height: 15px;
     width: 25px;
     overflow: hidden;
     margin: -2px 10px;
     display: inline-block;
     color: darkred;
+    font-size: 14px
 }
 
 .processDataIcon{
@@ -37,9 +41,17 @@
     color: darkgray;
 }
 
+.process{
+    padding-left: 20px;
+}
 
 .processDataOptions {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease;
+  }
+
+  [id*="toggle_process"] {
+    font-size: 12px;
+    text-decoration: none;
   }

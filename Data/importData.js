@@ -35,7 +35,6 @@ function importpopup() {
         updateSidebarData();
         if (tabs.tabs.length > 0) {
           tabs.click(tabs.active);
-          console.log("click");
         }
       }, 200);
 

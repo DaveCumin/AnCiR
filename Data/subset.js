@@ -20,6 +20,7 @@ subset_controls = function (selector, ...parameters) {
   // Get the reference to the target div element
   const dataDiv = document.getElementById(selector);
   // Get the second to last child element (the one above the icon to add process)
+  //TODO: this isn't quite right once there is another process.... to fix
   const secondToLastChild = dataDiv.children[dataDiv.children.length - 2];
 
   //look up the number of processes to give a number //TODO: reordering (drag?)
@@ -39,12 +40,14 @@ subset_controls = function (selector, ...parameters) {
   }
   // Create a new DOM element to be inserted
   const subsetControls = document.createElement("div");
+  subsetControls.setAttribute("class", "process");
+  //TODO: make the below prettier (along with much of the rest of the UI I've coded, rather than used W2UI)
   subsetControls.innerHTML = `<a>Subset</a>
-                                    <a href="javascript:void(0)" onclick="subsetToggle(this)" id="menu-subset_${selector}_${processN}">^</a>
-                                    <a href="javascript:void(0)" onclick="deleteProcess(this)" id="menu-subset_${selector}_${processN}">X</a>
-  <div class="processDataOptions" style="max-height: 100px;" id="processMenu_${selector}_9">
-    min time <input type="datetime-local" id="subset_min_${selector}_${processN}" onchange="subset_update('${selector}_${processN}')">
-    max time <input type="datetime-local" id="subset_max_${selector}_${processN}" onchange="subset_update('${selector}_${processN}')">
+                                    <a href="javascript:void(0)" onclick="subsetToggle(this)" id="menu-subsettoggle_${selector}_${processN}">&#x25B2;</a>
+                                    <a href="javascript:void(0)" onclick="deleteProcess(this)" id="menu-subsetclose_${selector}_${processN}"><div class="menu-icon"><span class="w2ui-icon w2ui-icon-cross deleteDataCross"></span></div></a>
+  <div id="menu-subsetItems_${selector}_${processN}" class="processDataOptions" style="max-height: 100px;" id="processMenu_${selector}_${processN}">
+    <div>min time <input type="datetime-local" id="subset_min_${selector}_${processN}" onchange="subset_update('${selector}_${processN}')"></div>
+    <div>max time <input type="datetime-local" id="subset_max_${selector}_${processN}" onchange="subset_update('${selector}_${processN}')"></div>
   </div>
   `;
 
@@ -64,13 +67,16 @@ subset_controls = function (selector, ...parameters) {
 };
 
 function subsetToggle(element) {
-  const processDataOptions = element.nextElementSibling.nextElementSibling;
+  //NB this enforces the ID structure of '...toggle...' and '...Items...'
+  const processDataOptions = document.getElementById(
+    element.id.replace("toggle", "Items")
+  );
   if (processDataOptions.style.maxHeight) {
     processDataOptions.style.maxHeight = null;
-    element.innerHTML = "v";
+    element.innerHTML = "&#x25BC;";
   } else {
     processDataOptions.style.maxHeight = processDataOptions.scrollHeight + "px";
-    element.innerHTML = "^";
+    element.innerHTML = "&#x25B2;";
   }
 }
 

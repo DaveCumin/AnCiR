@@ -4,11 +4,11 @@ function generateActiDataUI(controlsDiv, headingText, chartid, dataI) {
   dataDiv.setAttribute("id", "data_" + chartid + "_" + dataI);
 
   const dataHeading = document.createElement("div");
-  const dataHeadingText = document.createElement("a");
+  const dataHeadingText = document.createElement("strong");
   if (dataI > 0) {
-    dataHeadingText.innerHTML = `<strong>${headingText} <a href="javascript:charts[charts.findIndex(c => c.chartID === ${chartid})].chart.removeDataSource(${dataI})"><div class="menu-icon"><span class="w2ui-icon w2ui-icon-cross deleteDataCross"></span></div></a></strong>`;
+    dataHeadingText.innerHTML = `<a>${headingText}</a> <a href="javascript:charts[charts.findIndex(c => c.chartID === ${chartid})].chart.removeDataSource(${dataI})"><div class="menu-icon"><span class="w2ui-icon w2ui-icon-cross deleteDataCross"></span></div></a></strong>`;
   } else {
-    dataHeadingText.innerHTML = `<strong>${headingText}</strong>`;
+    dataHeadingText.innerHTML = `<a>${headingText}</a>`;
   }
   dataHeading.style.marginTop = "15px";
   dataHeading.appendChild(dataHeadingText);

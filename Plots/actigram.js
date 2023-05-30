@@ -664,6 +664,7 @@ function actigram(chartID) {
         dates: "",
         values: "",
         colour: "rgba(1,1,1,0.6)",
+        process: [],
       });
       generateActiDataUI(
         document.getElementById("dataSources"),

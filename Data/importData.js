@@ -17,7 +17,11 @@ function importpopup() {
     .ok((evt) => {
       //process the data
       fileImport.selected.forEach((selectedFile) => {
-        //TODO: Add in some checking here, and basic data to store (and display when clicked), such as number of rows, any date fields and their guessed format (??), guess of frequency (mean/median/mode) and any missing data (??)
+        //TODO: Add in some checking here, and basic data to store (and display when clicked), such as:
+        // - number of rows,
+        // - any date fields and their guessed format (??)
+        // (! TODO get away from the default Date type, as it includes daylight savings, etc [keep as UTC, or vanilla what is entered (?? option to change TZ to accomodate daylight savings?)]. Consider dayjs, Luxon, or date-fns),
+        // - guess of frequency (mean/median/mode) and any missing data (??)
         Papa.parse(selectedFile.file, {
           header: true,
           dynamicTyping: true,

@@ -20,10 +20,11 @@ subset_controls = function (selector, ...parameters) {
   // Get the reference to the target div element
   const dataDiv = document.getElementById(selector);
   // Get the second to last child element (the one above the icon to add process)
-  //TODO: this isn't quite right once there is another process.... to fix
+  //FIXME: this isn't quite right once there is another process.
   const secondToLastChild = dataDiv.children[dataDiv.children.length - 2];
 
-  //look up the number of processes to give a number //TODO: reordering (drag?)
+  //look up the number of processes to give a number
+  //TODO: reordering (drag?); process for the graph (all data), rather than by each data (?)
   const selectorIndicies = selector.split("_");
 
   var processN;
@@ -41,7 +42,7 @@ subset_controls = function (selector, ...parameters) {
   // Create a new DOM element to be inserted
   const subsetControls = document.createElement("div");
   subsetControls.setAttribute("class", "process");
-  //TODO: make the below prettier (along with much of the rest of the UI I've coded, rather than used W2UI)
+  //TODO: make the below prettier (along with much of the rest of the UI I've coded, ?rather than used W2UI)
   subsetControls.innerHTML = `<a>Subset</a>
                                     <a href="javascript:void(0)" onclick="subsetToggle(this)" id="menu-subsettoggle_${selector}_${processN}">&#x25B2;</a>
                                     <a href="javascript:void(0)" onclick="deleteProcess(this)" id="menu-subsetclose_${selector}_${processN}"><div class="menu-icon"><span class="w2ui-icon w2ui-icon-cross deleteDataCross"></span></div></a>

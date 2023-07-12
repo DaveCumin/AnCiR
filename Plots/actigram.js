@@ -552,6 +552,9 @@ function actigram(chartID) {
   };
 
   // internal code for reformatting data of the form {date: ..., value: ...} for plotting
+
+  // TODO: Use canvas instead of SVG for more efficient rendering; with SVG export option. ?
+
   makeActiData = function (rawData, periodHrs) {
     //TODO - date formatting, and make this starttime
 

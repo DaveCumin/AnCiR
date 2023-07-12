@@ -6,7 +6,7 @@ function importpopup() {
       title: "Import data",
       text: ` <div class="w2ui-field">
                     <label>Attach Files:</label>
-                    <div> <input id="file"> </div>
+                    <div> <input id="file" accept=".csv"> </div>
                 </div>`,
       actions: ["Ok", "Cancel"],
       width: 600,

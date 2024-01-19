@@ -2,9 +2,7 @@
 
 This is our 'AnCir' to the need for a simple-to-use (GUI; no coding) tool for analysis of circadian rhythms. Currently, the tool only allows for import of csv data and plotting of actigrams. However, many more features are planned.
 
-The UI is built with the [W2UI v2.0](https://w2ui.com/web/) package.
-Figures are drawn using [D3 v7](https://d3js.org/)
-Data is imported using the [Papaparse](https://www.papaparse.com/) tools
+This has been rewritten in Svelte to make it more extensible, faster, and fix a bunch of bugs. With help from @korur - thank you!.
 
 ## For users
 
@@ -14,8 +12,12 @@ Clicking on the name of the data table should display the contents in the bottom
 
 To create an actigram, click on _Plot_>_Actigram_. You can change the data that is used by using the dropdown lists under _Data for this plot_ on the right hand panel. You can add multiple data sources and change their colours. To see the post-processed data useed in the plot, click on the hyperlinked data for each source and see it appear in the data tabs below.
 
-The other controls for the actigram should be self-explanatory. Have fun.
+The other controls for the actigram should be self-explanatory.
+
+The Periodogram plot is what it says it is, and raw is just a plot of the data - with similar controls to the actigram.
+
+Have fun.
 
 ## For developers
 
-Any advice or offers of support will be welcommed. I am increasingly thinking about rewriting this all in Svelte... open to ideas.
+Any advice or offers of support will be welcommed.
